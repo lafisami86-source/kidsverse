@@ -1,8 +1,6 @@
-// NextAuth API Route
-// TODO: Implement NextAuth handler for authentication (GET, POST)
+import NextAuth from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 
-import { NextRequest, NextResponse } from 'next/server';
+const handler = NextAuth(authOptions);
 
-export async function GET(request: NextRequest) {
-  return NextResponse.json({ message: 'TODO: Implement' });
-}
+export { handler as GET, handler as POST };

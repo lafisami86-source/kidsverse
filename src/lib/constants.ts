@@ -60,6 +60,9 @@ export const BADGE_TYPES = [
   { id: 'streak-7', label: '7-Day Streak', icon: '🔥', description: 'Use the app 7 days in a row' },
 ] as const;
 
+export const MAX_FREE_PROFILES = 2;
+export const MAX_CHILD_PROFILES = 5;
+
 export const SESSION_STRATEGIES = {
   maxAge: 30 * 24 * 60 * 60, // 30 days
   updateAge: 24 * 60 * 60, // 1 day

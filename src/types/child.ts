@@ -1,5 +1,16 @@
 // Child Profile Types
-// TODO: Implement ChildProfile, AgeGroup types for child accounts
 
-// Types/exports will go here
-export {};
+export type AgeGroup = 'toddler' | 'early' | 'kid';
+
+export interface ChildProfile {
+  id: string;
+  name: string;
+  age: number;
+  avatar: string;
+  ageGroup: string;
+  screenTimeLimit: number;
+  contentFilter: string;
+  parentId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}

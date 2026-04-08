@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { SessionProvider } from "@/components/providers/session-provider";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -76,9 +77,11 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <main id="main-content" className="min-h-screen">
-          {children}
-        </main>
+        <SessionProvider>
+          <main id="main-content" className="min-h-screen">
+            {children}
+          </main>
+        </SessionProvider>
         <Toaster />
       </body>
     </html>

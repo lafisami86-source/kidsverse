@@ -58,3 +58,32 @@ Stage Summary:
 - Design tokens: 20 custom kid colors, 5 shadow levels, gradient utilities
 - Landing page showcases all design system components with live demo
 - Dev server running, page loads successfully at localhost:3000
+
+---
+Task ID: 3
+Agent: Super Z (Main)
+Task: Phase 3 — Auth + Parent Dashboard
+
+Work Log:
+- Updated Prisma schema: added `password String?` field to User model, pushed to DB, regenerated client
+- Created NextAuth type augmentation (next-auth.d.ts) — extends Session with user.id, JWT with id + subscription
+- Updated NextAuth API route — proper GET/POST handler with authOptions
+- Created SessionProvider wrapper (components/providers/session-provider.tsx)
+- Updated root layout to wrap children with SessionProvider
+- Created registration API route (POST /api/auth/register) — validates name/email/password, checks duplicates, hashes password, creates user + free subscription
+- Built Login page (230 lines) — email/password form, Google OAuth button, show/hide password, loading states, error display, COPPA notice, Framer Motion entrance, redirect to /parent on success
+- Built Registration page (650 lines) — 4-field form, password strength indicator (weak/fair/strong), requirements checklist, confirm password match check, inline validation, server error handling (409/400/500), redirect to /parent/login?registered=true on success
+- Built Parent Layout (182 lines) — session check with redirect, responsive sidebar nav (desktop) + bottom nav (mobile), hamburger menu overlay, active link highlighting, sign out, COPPA badge, loading spinner
+- Built Parent Dashboard main page (365 lines) — welcome message, quick stats cards, child profile cards with "Start Playing" links, recent activity, data fetch from /api/child-profiles
+- Built Profiles Management page (671 lines) — add profile form (name/age/avatar picker/screen time slider), inline edit mode, delete with confirmation, profile limit warning with premium upsell, responsive grid, staggered animations, empty state
+- Built Account Settings page (598 lines) — account info display, change password form with strength indicator and validation checklist, delete account with type-to-confirm safety, Google OAuth notice
+- Built Subscription page (435 lines) — current plan card, side-by-side plan comparison (Free vs Premium), feature checkmarks, upgrade CTA, crown sparkle animation
+
+Stage Summary:
+- Phase 3 complete: 2,766 lines across 6 pages + layout + 4 API/auth infrastructure files
+- Auth: NextAuth with Google OAuth + email credentials, JWT strategy, registration API
+- Parent Dashboard: full CRUD for child profiles (create/edit/delete with validation)
+- Screen time settings: slider (15-180 min) per profile
+- Profile limits enforced: 2 free, 5 premium
+- All pages: responsive, animated, keyboard accessible, session-protected
+- ESLint clean, dev server compiling successfully
