@@ -1,38 +1,63 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Nunito } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "600", "700", "800", "900"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Z.ai Code Scaffold - AI-Powered Development",
-  description: "Modern Next.js scaffold optimized for AI-powered development with Z.ai. Built with TypeScript, Tailwind CSS, and shadcn/ui.",
-  keywords: ["Z.ai", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "AI development", "React"],
-  authors: [{ name: "Z.ai Team" }],
+  title: {
+    default: "KidsVerse — Fun Learning for Kids",
+    template: "%s | KidsVerse",
+  },
+  description:
+    "A safe, fun, and educational platform for children ages 2–10. Learn, play, watch, create, and explore with interactive games, stories, and creative tools.",
+  keywords: [
+    "kids",
+    "children",
+    "educational",
+    "learning",
+    "games",
+    "stories",
+    "creative",
+    "toddlers",
+    "preschool",
+    "elementary",
+  ],
+  authors: [{ name: "KidsVerse Team" }],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
-    url: "https://chat.z.ai",
-    siteName: "Z.ai",
+    title: "KidsVerse — Fun Learning for Kids",
+    description: "A safe, fun, and educational platform for children ages 2–10.",
+    url: process.env.NEXT_PUBLIC_APP_URL || "https://kidsverse.app",
+    siteName: "KidsVerse",
     type: "website",
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
+    title: "KidsVerse — Fun Learning for Kids",
+    description: "A safe, fun, and educational platform for children ages 2–10.",
   },
+  robots: { index: true, follow: true },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
+    { media: "(prefers-color-scheme: dark)", color: "#1E293B" },
+  ],
 };
 
 export default function RootLayout({
@@ -43,9 +68,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${nunito.variable} font-nunito antialiased bg-background text-foreground`}
       >
-        {children}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-kids focus:bg-kids-sun focus:px-4 focus:py-2 focus:text-kids-dark focus:shadow-kids-lg"
+        >
+          Skip to main content
+        </a>
+        <main id="main-content" className="min-h-screen">
+          {children}
+        </main>
         <Toaster />
       </body>
     </html>
