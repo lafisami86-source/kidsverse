@@ -59,13 +59,40 @@ export default function ParentDashboard() {
 
   const fetchProfiles = useCallback(async () => {
     try {
-      const res = await fetch('/api/child-profiles');
-      if (res.ok) {
-        const data = await res.json();
-        setProfiles(data.profiles || []);
-      }
+      // Load localStorage profiles first
+      let localProfiles: ChildProfileData[] = [];
+      try {
+        const raw = localStorage.getItem('kidsverse_profiles');
+        if (raw) localProfiles = JSON.parse(raw) as ChildProfileData[];
+      } catch { /* ignore */ }
+
+      // Try API
+      let apiProfiles: ChildProfileData[] = [];
+      try {
+        const res = await fetch('/api/child-profiles');
+        if (res.ok) {
+          const data = await res.json();
+          apiProfiles = data.profiles || [];
+        }
+      } catch { /* API failed — use localStorage */ }
+
+      // Merge: API profiles take precedence
+      const apiIds = new Set(apiProfiles.map((p) => p.id));
+      const uniqueLocal = localProfiles.filter((p) => !apiIds.has(p.id));
+      const merged = [...apiProfiles, ...uniqueLocal];
+
+      // Save merged to localStorage
+      try {
+        localStorage.setItem('kidsverse_profiles', JSON.stringify(merged));
+      } catch { /* ignore */ }
+
+      setProfiles(merged);
     } catch {
-      // Silently handle fetch errors
+      // Final fallback: localStorage only
+      try {
+        const raw = localStorage.getItem('kidsverse_profiles');
+        if (raw) setProfiles(JSON.parse(raw) as ChildProfileData[]);
+      } catch { /* ignore */ }
     } finally {
       setLoading(false);
     }

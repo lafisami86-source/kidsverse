@@ -23,18 +23,82 @@ interface ProfileData {
   screenTimeLimit: number;
   contentFilter: string;
   parentId: string;
-  badgesCount: number;
-  totalProgress: number;
-  gamesPlayed: number;
-  drawingsCount: number;
+  badgesCount?: number;
+  totalProgress?: number;
+  gamesPlayed?: number;
+  drawingsCount?: number;
   _count?: { badges: number; gameScores: number };
 }
 
 interface ApiProfilesResponse {
   profiles: ProfileData[];
-  maxProfiles?: number;
-  currentCount?: number;
-  isPremium?: boolean;
+}
+
+/* ------------------------------------------------------------------ */
+/*  localStorage helpers                                               */
+/* ------------------------------------------------------------------ */
+
+const STORAGE_KEY = 'kidsverse_profiles';
+
+function loadLocalProfiles(): ProfileData[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as ProfileData[];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalProfiles(profiles: ProfileData[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+  } catch {
+    // localStorage full or unavailable — ignore
+  }
+}
+
+function addLocalProfile(data: { name: string; age: number; avatar: string; screenTimeLimit: number }): ProfileData {
+  const profiles = loadLocalProfiles();
+  const ageGroup = data.age <= 3 ? 'toddler' : data.age <= 6 ? 'early' : 'kid';
+  const newProfile: ProfileData = {
+    id: `local_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+    name: data.name,
+    age: data.age,
+    avatar: data.avatar,
+    ageGroup,
+    screenTimeLimit: data.screenTimeLimit,
+    contentFilter: 'all',
+    parentId: 'local',
+  };
+  profiles.push(newProfile);
+  saveLocalProfiles(profiles);
+  return newProfile;
+}
+
+function updateLocalProfile(id: string, data: { name: string; age: number; avatar: string; screenTimeLimit: number }): ProfileData | null {
+  const profiles = loadLocalProfiles();
+  const idx = profiles.findIndex((p) => p.id === id);
+  if (idx === -1) return null;
+  const ageGroup = data.age <= 3 ? 'toddler' : data.age <= 6 ? 'early' : 'kid';
+  profiles[idx] = {
+    ...profiles[idx],
+    name: data.name,
+    age: data.age,
+    avatar: data.avatar,
+    ageGroup,
+    screenTimeLimit: data.screenTimeLimit,
+  };
+  saveLocalProfiles(profiles);
+  return profiles[idx];
+}
+
+function deleteLocalProfile(id: string) {
+  const profiles = loadLocalProfiles();
+  const filtered = profiles.filter((p) => p.id !== id);
+  saveLocalProfiles(filtered);
 }
 
 /* ------------------------------------------------------------------ */
@@ -283,16 +347,42 @@ export default function ProfilesPage() {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /* ---------- Fetch profiles ---------- */
+  /* ---------- Fetch profiles (API + localStorage merge) ---------- */
   const fetchProfiles = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/child-profiles');
-      if (!res.ok) throw new Error('Failed to load profiles');
-      const data: ApiProfilesResponse = await res.json();
-      setProfiles(data.profiles || []);
+      setError(null);
+
+      // Always load localStorage profiles first
+      const localProfiles = loadLocalProfiles();
+
+      // Try API
+      let apiProfiles: ProfileData[] = [];
+      try {
+        const res = await fetch('/api/child-profiles');
+        if (res.ok) {
+          const data: ApiProfilesResponse = await res.json();
+          apiProfiles = data.profiles || [];
+        }
+      } catch {
+        // API failed — use localStorage only
+      }
+
+      // Merge: API profiles take precedence, add local ones that aren't in API
+      const apiIds = new Set(apiProfiles.map((p) => p.id));
+      const uniqueLocal = localProfiles.filter((p) => !apiIds.has(p.id));
+
+      // Save API profiles to localStorage too (keeps them in sync)
+      if (apiProfiles.length > 0) {
+        const merged = [...apiProfiles, ...uniqueLocal];
+        saveLocalProfiles(merged);
+        setProfiles(merged);
+      } else {
+        setProfiles(localProfiles);
+      }
     } catch {
-      setError('Failed to load profiles. Please try again.');
+      // Final fallback: load from localStorage
+      setProfiles(loadLocalProfiles());
     } finally {
       setLoading(false);
     }
@@ -307,17 +397,37 @@ export default function ProfilesPage() {
     setCreating(true);
     setError(null);
     try {
-      const res = await fetch('/api/child-profiles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const body = await res.json();
-        throw new Error(body.error || 'Failed to create profile');
+      // Always save to localStorage first (guaranteed to work)
+      const localProfile = addLocalProfile(data);
+
+      // Also try API (best effort)
+      try {
+        const res = await fetch('/api/child-profiles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (res.ok) {
+          const result = await res.json();
+          if (result.profile) {
+            // API succeeded — replace local profile with server one
+            deleteLocalProfile(localProfile.id);
+            const all = loadLocalProfiles();
+            all.unshift(result.profile);
+            saveLocalProfiles(all);
+            setProfiles(all);
+            setShowAddForm(false);
+            setCreating(false);
+            return;
+          }
+        }
+      } catch {
+        // API failed — localStorage save already happened
       }
+
+      // Use localStorage result
+      setProfiles(loadLocalProfiles());
       setShowAddForm(false);
-      await fetchProfiles();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create profile');
     } finally {
@@ -330,17 +440,39 @@ export default function ProfilesPage() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/child-profiles/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const body = await res.json();
-        throw new Error(body.error || 'Failed to update profile');
+      // Always update localStorage first
+      const updated = updateLocalProfile(id, data);
+
+      // Also try API
+      try {
+        const res = await fetch(`/api/child-profiles/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (res.ok) {
+          const result = await res.json();
+          if (result.profile) {
+            // Update localStorage with server result
+            const all = loadLocalProfiles();
+            const idx = all.findIndex((p) => p.id === id);
+            if (idx !== -1) all[idx] = result.profile;
+            saveLocalProfiles(all);
+            setProfiles(all);
+            setEditingId(null);
+            setSaving(false);
+            return;
+          }
+        }
+      } catch {
+        // API failed — localStorage update already done
+      }
+
+      // Use localStorage result
+      if (updated) {
+        setProfiles(loadLocalProfiles());
       }
       setEditingId(null);
-      await fetchProfiles();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
@@ -353,10 +485,18 @@ export default function ProfilesPage() {
     setDeleting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/child-profiles/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete profile');
+      // Always delete from localStorage
+      deleteLocalProfile(id);
+
+      // Also try API
+      try {
+        await fetch(`/api/child-profiles/${id}`, { method: 'DELETE' });
+      } catch {
+        // API failed — localStorage delete already done
+      }
+
+      setProfiles(loadLocalProfiles());
       setDeletingId(null);
-      setProfiles((prev) => prev.filter((p) => p.id !== id));
     } catch {
       setError('Failed to delete profile. Please try again.');
     } finally {
