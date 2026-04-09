@@ -26,3 +26,5 @@ export type { AudioToggleProps } from './audio-button';
 
 export { StarBadge } from './star-badge';
 export type { StarBadgeProps } from './star-badge';
+
+export { default as GameResults } from './game-results';
