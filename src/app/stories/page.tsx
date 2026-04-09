@@ -3,13 +3,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Star, Heart, BookOpen, Clock, Sparkles } from 'lucide-react';
+import { ArrowLeft, Star, Heart, BookOpen, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { KidsCard } from '@/components/kids/kids-card';
 import { KidsBadge } from '@/components/kids/kids-badge';
 import { KidsButton } from '@/components/kids/kids-button';
 import { useAudio } from '@/hooks/use-audio';
-import { useAgeGroup } from '@/hooks/use-age-group';
 import { STORY_CATEGORIES } from '@/lib/constants';
 
 /* ------------------------------------------------------------------ */
@@ -56,6 +55,15 @@ const STORIES: Story[] = [
 
 const STORAGE_KEY = 'kv-active-profile';
 const FAVORITES_KEY = 'kv-story-favorites';
+
+const DEFAULT_PROFILE: StoredProfile = {
+  id: 'guest',
+  name: 'Friend',
+  age: 5,
+  avatar: '🌟',
+  ageGroup: 'early',
+  screenTimeLimit: 60,
+};
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -139,14 +147,14 @@ export default function StoriesLibrary() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  /* ---- Age-adaptive config ---- */
-  const ageConfig = useAgeGroup(profile?.age ?? 5);
-  const isToddler = ageConfig.ageGroup === 'toddler';
+  /* ---- Use stored profile or default guest ---- */
+  const activeProfile = profile || DEFAULT_PROFILE;
+  const isToddler = (activeProfile.age ?? 5) <= 4;
 
   /* ---- Filter stories ---- */
   const filteredStories = STORIES.filter((story) => {
     const matchesCategory = activeCategory === 'all' || story.category === activeCategory;
-    const matchesAge = !profile || (profile.age >= story.ageRange[0] && profile.age <= story.ageRange[1]);
+    const matchesAge = (activeProfile.age ?? 5) >= story.ageRange[0] && (activeProfile.age ?? 5) <= story.ageRange[1];
     const matchesSearch = !searchQuery || story.title.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesAge && matchesSearch;
   });
@@ -169,7 +177,7 @@ export default function StoriesLibrary() {
     [playHeart],
   );
 
-  /* ---- Not mounted / no profile ---- */
+  /* ---- Not mounted yet ---- */
   if (!mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-kids-offwhite">
@@ -192,43 +200,6 @@ export default function StoriesLibrary() {
     );
   }
 
-  if (!profile) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-kids-offwhite px-4">
-        <motion.div
-          className="flex flex-col items-center gap-6 rounded-3xl bg-white p-8 shadow-kids-lg text-center max-w-sm sm:max-w-md"
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-        >
-          <motion.span
-            className="text-6xl"
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            📚
-          </motion.span>
-          <div>
-            <h1 className="text-2xl font-nunito font-extrabold text-kids-dark">
-              Who&apos;s Reading Today?
-            </h1>
-            <p className="mt-2 text-sm text-kids-text-secondary leading-relaxed">
-              Please select a profile first so we can find the best stories for you!
-            </p>
-          </div>
-          <KidsButton
-            variant="primary"
-            size={isToddler ? 'toddler' : 'early'}
-            onClick={() => router.push('/kids')}
-            leftIcon={<span aria-hidden="true">{'🧒'}</span>}
-          >
-            Choose a Profile
-          </KidsButton>
-        </motion.div>
-      </div>
-    );
-  }
-
   /* ---- Main content ---- */
   return (
     <div className="min-h-screen bg-kids-offwhite">
@@ -238,9 +209,9 @@ export default function StoriesLibrary() {
           <div className="flex h-14 items-center justify-between rounded-b-2xl bg-white px-4 shadow-kids sm:px-6">
             <button
               type="button"
-              onClick={() => router.push('/kids')}
+              onClick={() => router.push('/')}
               className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-kids-lightgray focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-kids-sky"
-              aria-label="Back to profile selector"
+              aria-label="Back to home"
             >
               <ArrowLeft className="size-5 text-kids-text-secondary" aria-hidden="true" />
               <span className="hidden text-sm font-nunito font-bold text-kids-text-secondary sm:inline">
@@ -257,7 +228,7 @@ export default function StoriesLibrary() {
                 transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                 aria-hidden="true"
               >
-                {profile.avatar}
+                {activeProfile.avatar}
               </motion.span>
             </div>
           </div>
@@ -287,8 +258,24 @@ export default function StoriesLibrary() {
               Story Library
             </h1>
             <p className="text-sm sm:text-base text-kids-text-secondary">
-              {isToddler ? `Tap a story, ${profile.name}!` : `Pick a story to read, ${profile.name}!`}
+              {isToddler ? `Tap a story, ${activeProfile.name}!` : `Pick a story to read, ${activeProfile.name}!`}
             </p>
+            {!profile && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <KidsButton
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push('/kids')}
+                  leftIcon={<span aria-hidden="true">{'🧒'}</span>}
+                >
+                  Select Profile
+                </KidsButton>
+              </motion.div>
+            )}
           </motion.section>
 
           {/* Category Filters */}
@@ -397,12 +384,10 @@ export default function StoriesLibrary() {
                         {story.title}
                       </h2>
 
-                      {/* Description (for older kids) */}
-                      {ageConfig.showDescriptions && (
-                        <p className="text-xs sm:text-sm text-kids-text-secondary leading-relaxed line-clamp-2">
-                          {story.description}
-                        </p>
-                      )}
+                      {/* Description */}
+                      <p className="text-xs sm:text-sm text-kids-text-secondary leading-relaxed line-clamp-2">
+                        {story.description}
+                      </p>
 
                       {/* Meta info */}
                       <div className="flex items-center gap-3 mt-auto pt-1">

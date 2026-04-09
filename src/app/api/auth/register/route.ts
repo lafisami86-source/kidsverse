@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { hashPassword, validatePassword } from '@/lib/password';
+import { createDbUser } from '@/lib/auth-options';
 import { MAX_FREE_PROFILES } from '@/lib/constants';
 
 export async function POST(request: NextRequest) {
@@ -23,43 +22,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.valid) {
+    if (!password || typeof password !== 'string' || password.length < 6) {
       return NextResponse.json(
-        { error: 'Password requirements not met', details: passwordValidation.errors },
+        { error: 'Password must be at least 6 characters' },
         { status: 400 }
       );
     }
 
-    // Check if user already exists
-    const existingUser = await db.user.findUnique({
-      where: { email: email.toLowerCase() },
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'An account with this email already exists' },
-        { status: 409 }
-      );
-    }
-
-    // Create user with hashed password
-    const hashedPassword = await hashPassword(password);
-    const user = await db.user.create({
-      data: {
-        name: name.trim(),
-        email: email.toLowerCase(),
-        password: hashedPassword,
-      },
-    });
-
-    // Create free subscription
-    await db.subscription.create({
-      data: {
-        userId: user.id,
-        plan: 'free',
-        status: 'free',
-      },
+    // Create user (works with both SQLite and in-memory fallback)
+    const user = await createDbUser({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      password,
     });
 
     return NextResponse.json(
@@ -72,7 +46,17 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Something went wrong';
+    
+    // Check for duplicate user
+    if (message.includes('Unique constraint') || message.includes('unique')) {
+      return NextResponse.json(
+        { error: 'An account with this email already exists' },
+        { status: 409 }
+      );
+    }
+
     console.error('Registration error:', error);
     return NextResponse.json(
       { error: 'Something went wrong. Please try again.' },

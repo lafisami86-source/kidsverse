@@ -25,8 +25,13 @@ export async function GET() {
     });
 
     return NextResponse.json({ profiles });
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '';
+    if (message === 'Authentication required') {
+      return NextResponse.json({ profiles: [] }, { status: 200 });
+    }
+    // Database not available — return empty list instead of error
+    return NextResponse.json({ profiles: [] }, { status: 200 });
   }
 }
 

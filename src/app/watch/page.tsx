@@ -3,13 +3,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Play, Clock, Eye, Sparkles, ThumbsUp } from 'lucide-react';
+import { ArrowLeft, Play, Clock, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { KidsCard } from '@/components/kids/kids-card';
 import { KidsBadge } from '@/components/kids/kids-badge';
-import { KidsButton } from '@/components/kids/kids-button';
 import { useAudio } from '@/hooks/use-audio';
-import { useAgeGroup } from '@/hooks/use-age-group';
 import { VIDEO_CATEGORIES } from '@/lib/constants';
 
 /* ------------------------------------------------------------------ */
@@ -50,7 +48,7 @@ const VIDEOS: Video[] = [
   { id: 'drawing-animals', title: 'How to Draw Animals', description: 'Step-by-step instructions to draw cute animals easily.', category: 'art', thumbnail: '🐾', duration: '6:00', ageRange: [4, 10], isPremium: false, views: '2.7M', color: 'mint' },
   { id: 'three-little-pigs', title: 'Three Little Pigs', description: 'Watch the classic story of the Three Little Pigs come alive!', category: 'stories', thumbnail: '🐷', duration: '4:45', ageRange: [2, 7], isPremium: false, views: '5.1M', color: 'coral' },
   { id: 'shapes-song', title: 'The Shapes Song', description: 'Learn circles, squares, triangles and more with music!', category: 'songs', thumbnail: '🔷', duration: '2:50', ageRange: [2, 5], isPremium: false, views: '1.5M', color: 'sun' },
-  { id: 'volcano-science', title: 'How Volcanoes Work', description: 'Discover what makes volcanoes erupt in this exciting science video!', category: 'science', thumbnail: '🌋', duration: '5:00', ageRange: [5, 10], isPremium: true, rating: 5, views: '3.8M', color: 'coral' },
+  { id: 'volcano-science', title: 'How Volcanoes Work', description: 'Discover what makes volcanoes erupt in this exciting science video!', category: 'science', thumbnail: '🌋', duration: '5:00', ageRange: [5, 10], isPremium: true, views: '3.8M', color: 'coral' },
   { id: 'ocean-animals', title: 'Ocean Animals for Kids', description: 'Dive deep into the ocean and meet amazing sea creatures!', category: 'science', thumbnail: '🐙', duration: '4:20', ageRange: [3, 8], isPremium: false, views: '6.3M', color: 'sky' },
   { id: 'dance-party', title: 'Kids Dance Party', description: 'Get up and dance with these fun moves for kids of all ages!', category: 'songs', thumbnail: '💃', duration: '3:45', ageRange: [2, 8], isPremium: false, views: '8.1M', color: 'lavender' },
   { id: 'paper-crafts', title: 'Easy Paper Crafts', description: 'Make amazing things with just paper, scissors and glue!', category: 'art', thumbnail: '✂️', duration: '7:00', ageRange: [4, 10], isPremium: false, views: '1.9M', color: 'grass' },
@@ -58,6 +56,15 @@ const VIDEOS: Video[] = [
 ];
 
 const STORAGE_KEY = 'kv-active-profile';
+
+const DEFAULT_PROFILE: StoredProfile = {
+  id: 'guest',
+  name: 'Friend',
+  age: 5,
+  avatar: '🌟',
+  ageGroup: 'early',
+  screenTimeLimit: 60,
+};
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -116,14 +123,14 @@ export default function VideoBrowser() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  /* ---- Age-adaptive config ---- */
-  const ageConfig = useAgeGroup(profile?.age ?? 5);
-  const isToddler = ageConfig.ageGroup === 'toddler';
+  /* ---- Use stored profile or default guest ---- */
+  const activeProfile = profile || DEFAULT_PROFILE;
+  const isToddler = (activeProfile.age ?? 5) <= 4;
 
   /* ---- Filter videos ---- */
   const filteredVideos = VIDEOS.filter((video) => {
     const matchesCategory = activeCategory === 'all' || video.category === activeCategory;
-    const matchesAge = !profile || (profile.age >= video.ageRange[0] && profile.age <= video.ageRange[1]);
+    const matchesAge = (activeProfile.age ?? 5) >= video.ageRange[0] && (activeProfile.age ?? 5) <= video.ageRange[1];
     return matchesCategory && matchesAge;
   });
 
@@ -136,7 +143,7 @@ export default function VideoBrowser() {
     [playPop, router],
   );
 
-  /* ---- Not mounted / no profile ---- */
+  /* ---- Not mounted yet ---- */
   if (!mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-kids-offwhite">
@@ -159,43 +166,6 @@ export default function VideoBrowser() {
     );
   }
 
-  if (!profile) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-kids-offwhite px-4">
-        <motion.div
-          className="flex flex-col items-center gap-6 rounded-3xl bg-white p-8 shadow-kids-lg text-center max-w-sm sm:max-w-md"
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-        >
-          <motion.span
-            className="text-6xl"
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            🎥
-          </motion.span>
-          <div>
-            <h1 className="text-2xl font-nunito font-extrabold text-kids-dark">
-              Who&apos;s Watching?
-            </h1>
-            <p className="mt-2 text-sm text-kids-text-secondary leading-relaxed">
-              Please select a profile first so we can find the best videos for you!
-            </p>
-          </div>
-          <KidsButton
-            variant="primary"
-            size={isToddler ? 'toddler' : 'early'}
-            onClick={() => router.push('/kids')}
-            leftIcon={<span aria-hidden="true">{'🧒'}</span>}
-          >
-            Choose a Profile
-          </KidsButton>
-        </motion.div>
-      </div>
-    );
-  }
-
   /* ---- Main content ---- */
   return (
     <div className="min-h-screen bg-kids-offwhite">
@@ -205,9 +175,9 @@ export default function VideoBrowser() {
           <div className="flex h-14 items-center justify-between rounded-b-2xl bg-white px-4 shadow-kids sm:px-6">
             <button
               type="button"
-              onClick={() => router.push('/kids')}
+              onClick={() => router.push('/')}
               className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-kids-lightgray focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-kids-sky"
-              aria-label="Back to profile selector"
+              aria-label="Back to home"
             >
               <ArrowLeft className="size-5 text-kids-text-secondary" aria-hidden="true" />
               <span className="hidden text-sm font-nunito font-bold text-kids-text-secondary sm:inline">
@@ -224,7 +194,7 @@ export default function VideoBrowser() {
                 transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                 aria-hidden="true"
               >
-                {profile.avatar}
+                {activeProfile.avatar}
               </motion.span>
             </div>
           </div>
@@ -254,8 +224,24 @@ export default function VideoBrowser() {
               Videos
             </h1>
             <p className="text-sm sm:text-base text-kids-text-secondary">
-              {isToddler ? `Tap a video, ${profile.name}!` : `Choose a video to watch, ${profile.name}!`}
+              {isToddler ? `Tap a video, ${activeProfile.name}!` : `Choose a video to watch, ${activeProfile.name}!`}
             </p>
+            {!profile && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <KidsButton
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push('/kids')}
+                  leftIcon={<span aria-hidden="true">{'🧒'}</span>}
+                >
+                  Select Profile
+                </KidsButton>
+              </motion.div>
+            )}
           </motion.section>
 
           {/* Category Filters */}
@@ -352,11 +338,9 @@ export default function VideoBrowser() {
                         {video.title}
                       </h2>
 
-                      {ageConfig.showDescriptions && (
-                        <p className="text-xs text-kids-text-secondary leading-relaxed line-clamp-2">
-                          {video.description}
-                        </p>
-                      )}
+                      <p className="text-xs text-kids-text-secondary leading-relaxed line-clamp-2">
+                        {video.description}
+                      </p>
 
                       <div className="flex items-center gap-3 mt-1">
                         <span className="flex items-center gap-1 text-xs text-kids-text-muted font-nunito">

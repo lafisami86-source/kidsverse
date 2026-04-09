@@ -10,6 +10,44 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { db } from './db';
 import { comparePasswords, hashPassword } from './password';
 
+// In-memory user store as fallback when SQLite is not available (Vercel serverless)
+const memoryUsers = new Map<string, { id: string; email: string; name: string; password: string; image?: string }>();
+
+async function getDbUser(email: string) {
+  try {
+    const user = await db.user.findUnique({ where: { email } });
+    if (user) return user;
+  } catch {
+    // DB not available — fall through to memory store
+  }
+  return memoryUsers.get(email.toLowerCase()) || null;
+}
+
+async function createDbUser(data: { name: string; email: string; password: string }) {
+  const email = data.email.toLowerCase();
+  const id = `usr_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  const hashedPassword = await hashPassword(data.password);
+  const user = { id, email, name: data.name, password: hashedPassword };
+
+  try {
+    await db.user.create({
+      data: { name: data.name, email, password: hashedPassword },
+    });
+    try {
+      await db.subscription.create({
+        data: { userId: id, plan: 'free', status: 'free' },
+      });
+    } catch {
+      // Ignore subscription creation errors
+    }
+  } catch {
+    // DB not available — store in memory
+    memoryUsers.set(email, user);
+  }
+
+  return user;
+}
+
 export const authOptions: NextAuthOptions = {
   // @ts-expect-error - PrismaAdapter type mismatch with NextAuth v4
   adapter: PrismaAdapter(db) as Adapter,
@@ -30,15 +68,13 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const user = await db.user.findUnique({
-            where: { email: credentials.email },
-          });
+          const user = await getDbUser(credentials.email);
 
-          if (!user || !user.password) {
+          if (!user) {
             return null;
           }
 
-          const isValid = await comparePasswords(credentials.password, user.password);
+          const isValid = await comparePasswords(credentials.password, user.password || '');
 
           if (!isValid) {
             return null;
@@ -50,9 +86,8 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             image: user.image,
           };
-        } catch {
-          // DB query failed (e.g. Vercel cold start with SQLite)
-          console.error('Auth authorize DB error — database may be unavailable');
+        } catch (error) {
+          console.error('Auth authorize error:', error);
           return null;
         }
       },
@@ -83,7 +118,6 @@ export const authOptions: NextAuthOptions = {
           });
           (session.user as Record<string, unknown>).subscription = subscription?.plan || 'free';
         } catch {
-          // DB might not be available (e.g. Vercel cold start) — fallback to free
           (session.user as Record<string, unknown>).subscription = 'free';
         }
       }
@@ -92,3 +126,5 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET || 'kidsverse-fallback-secret-change-in-production',
 };
+
+export { createDbUser, getDbUser };

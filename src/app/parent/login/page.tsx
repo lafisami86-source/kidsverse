@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles, CheckCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const justRegistered = searchParams.get('registered') === 'true';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -77,6 +80,18 @@ export default function LoginPage() {
 
         {/* Login Card */}
         <div className="bg-white rounded-3xl shadow-kids-lg p-6 sm:p-8">
+          {/* Success Banner (after registration) */}
+          {justRegistered && (
+            <motion.div
+              className="mb-6 p-3 bg-kids-grass/10 border border-kids-grass/20 rounded-2xl text-kids-success text-sm font-nunito"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <CheckCircle className="size-4 inline-block mr-1" aria-hidden="true" />
+              Account created successfully! Please sign in below.
+            </motion.div>
+          )}
+
           {/* Error Message */}
           {error && (
             <motion.div

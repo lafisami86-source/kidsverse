@@ -10,7 +10,6 @@ import { KidsBadge } from '@/components/kids/kids-badge';
 import { KidsProgressBar } from '@/components/kids/kids-progress-bar';
 import { KidsButton } from '@/components/kids/kids-button';
 import { useAudio } from '@/hooks/use-audio';
-import { useAgeGroup } from '@/hooks/use-age-group';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -54,6 +53,15 @@ const LEARNING_MODULES: LearningModule[] = [
 
 const STORAGE_KEY = 'kv-active-profile';
 const PROGRESS_KEY = 'kv-learn-progress';
+
+const DEFAULT_PROFILE: StoredProfile = {
+  id: 'guest',
+  name: 'Friend',
+  age: 5,
+  avatar: '🌟',
+  ageGroup: 'early',
+  screenTimeLimit: 60,
+};
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -159,11 +167,10 @@ export default function LearnOverview() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  /* ---- Age-adaptive config ---- */
-  const ageConfig = useAgeGroup(profile?.age ?? 5);
-  const ageGroup = ageConfig.ageGroup;
-  const isToddler = ageGroup === 'toddler';
-  const isKid = ageGroup === 'kid';
+  /* ---- Use stored profile or default guest ---- */
+  const activeProfile = profile || DEFAULT_PROFILE;
+  const isToddler = (activeProfile.age ?? 5) <= 4;
+  const isKid = (activeProfile.age ?? 5) >= 8;
 
   /* ---- Derived sizing ---- */
   const titleSize = isToddler ? 'text-3xl sm:text-4xl' : isKid ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl';
@@ -171,6 +178,7 @@ export default function LearnOverview() {
   const cardIconSize = isToddler ? 'text-5xl sm:text-6xl' : isKid ? 'text-4xl sm:text-5xl' : 'text-4xl sm:text-5xl';
   const cardTitleSize = isToddler ? 'text-lg sm:text-xl' : isKid ? 'text-sm sm:text-base' : 'text-base sm:text-lg';
   const cardDescSize = isToddler ? 'text-sm sm:text-base' : 'text-xs sm:text-sm';
+  const showDescriptions = isToddler ? false : true;
   const gridSize = isToddler ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2';
 
   /* ---- Computed stats ---- */
@@ -187,7 +195,7 @@ export default function LearnOverview() {
     [playPop, router],
   );
 
-  /* ---- Not mounted / no profile ---- */
+  /* ---- Not mounted yet ---- */
   if (!mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-kids-offwhite">
@@ -210,43 +218,6 @@ export default function LearnOverview() {
     );
   }
 
-  if (!profile) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-kids-offwhite px-4">
-        <motion.div
-          className="flex flex-col items-center gap-6 rounded-3xl bg-white p-8 shadow-kids-lg text-center max-w-sm sm:max-w-md"
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-        >
-          <motion.span
-            className="text-6xl"
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            👋
-          </motion.span>
-          <div>
-            <h1 className="text-2xl font-nunito font-extrabold text-kids-dark">
-              Who&apos;s Learning Today?
-            </h1>
-            <p className="mt-2 text-sm text-kids-text-secondary leading-relaxed">
-              Please select a profile first so we can personalize your learning experience!
-            </p>
-          </div>
-          <KidsButton
-            variant="primary"
-            size={isToddler ? 'toddler' : 'early'}
-            onClick={() => router.push('/kids')}
-            leftIcon={<span aria-hidden="true">{'🧒'}</span>}
-          >
-            Choose a Profile
-          </KidsButton>
-        </motion.div>
-      </div>
-    );
-  }
-
   /* ---- Main content ---- */
   return (
     <div className="min-h-screen bg-kids-offwhite">
@@ -256,9 +227,9 @@ export default function LearnOverview() {
           <div className="flex h-14 items-center justify-between rounded-b-2xl bg-white px-4 shadow-kids sm:px-6">
             <button
               type="button"
-              onClick={() => router.push('/kids')}
+              onClick={() => router.push('/')}
               className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-kids-lightgray focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-kids-sky"
-              aria-label="Back to profile selector"
+              aria-label="Back to home"
             >
               <ArrowLeft className="size-5 text-kids-text-secondary" aria-hidden="true" />
               <span className="hidden text-sm font-nunito font-bold text-kids-text-secondary sm:inline">
@@ -275,7 +246,7 @@ export default function LearnOverview() {
                 transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                 aria-hidden="true"
               >
-                {profile.avatar}
+                {activeProfile.avatar}
               </motion.span>
             </div>
           </div>
@@ -309,8 +280,26 @@ export default function LearnOverview() {
               Let&apos;s Learn!
             </h1>
             <p className={cn('text-kids-text-secondary', subtitleSize)}>
-              {isToddler ? `Tap a lesson, ${profile.name}!` : `Choose a subject, ${profile.name}!`}
+              {isToddler ? `Tap a lesson, ${activeProfile.name}!` : `Choose a subject, ${activeProfile.name}!`}
             </p>
+
+            {/* Show guest notice if no profile selected */}
+            {!profile && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <KidsButton
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push('/kids')}
+                  leftIcon={<span aria-hidden="true">{'🧒'}</span>}
+                >
+                  Select Profile
+                </KidsButton>
+              </motion.div>
+            )}
           </motion.section>
 
           {/* ================================================================ */}
@@ -432,8 +421,8 @@ export default function LearnOverview() {
                         {module.title}
                       </h2>
 
-                      {/* Description (for non-toddlers) */}
-                      {ageConfig.showDescriptions && (
+                      {/* Description */}
+                      {showDescriptions && (
                         <p className={cn('text-kids-text-secondary leading-relaxed', cardDescSize)}>
                           {module.description}
                         </p>

@@ -13,17 +13,28 @@ const NAV_ITEMS = [
   { href: '/parent/settings', label: 'Settings', icon: Settings },
 ];
 
+// Public routes that don't require authentication
+const PUBLIC_PATHS = ['/parent/login', '/parent/register'];
+
 export default function ParentLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const isPublicPath = PUBLIC_PATHS.some(p => pathname.startsWith(p));
+
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    // Only redirect to login if NOT on a public path
+    if (status === 'unauthenticated' && !isPublicPath) {
       router.push('/parent/login');
     }
-  }, [status, router]);
+  }, [status, router, isPublicPath]);
+
+  // For public pages (login/register), just render children directly
+  if (isPublicPath) {
+    return <>{children}</>;
+  }
 
   if (status === 'loading') {
     return (
