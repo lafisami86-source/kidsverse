@@ -1,6 +1,6 @@
 // Game Scores API — Submit and retrieve game scores
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db as prisma } from '@/lib/prisma';
 
 // ─── GET: Fetch high scores for a child profile ──────────────────────────
 // Query: ?profileId=xxx&gameType=memory (optional filter)

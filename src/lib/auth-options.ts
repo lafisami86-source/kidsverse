@@ -3,8 +3,6 @@
  * Handles authentication for parent accounts
  */
 import type { NextAuthOptions } from 'next-auth';
-import type { Adapter } from 'next-auth/adapters';
-import { PrismaAdapter } from '@auth/prisma-adapter';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { db } from './db';
@@ -49,8 +47,6 @@ async function createDbUser(data: { name: string; email: string; password: strin
 }
 
 export const authOptions: NextAuthOptions = {
-  // @ts-expect-error - PrismaAdapter type mismatch with NextAuth v4
-  adapter: PrismaAdapter(db) as Adapter,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
