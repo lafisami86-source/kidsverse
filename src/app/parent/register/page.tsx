@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { Suspense, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -70,7 +70,7 @@ const strengthTextColor: Record<PasswordStrength, string> = {
   strong: 'text-kids-success',
 };
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -637,5 +637,29 @@ export default function RegisterPage() {
         </p>
       </motion.div>
     </div>
+  );
+}
+
+function RegisterFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-kids-offwhite flex items-center justify-center p-4">
+      <div className="w-full max-w-md text-center">
+        <div className="text-4xl sm:text-5xl font-nunito font-black text-gradient-rainbow mb-4">
+          KidsVerse
+        </div>
+        <div className="bg-white rounded-3xl shadow-kids-lg p-8">
+          <div className="size-8 border-2 border-kids-sky border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="mt-4 text-kids-text-secondary font-nunito">Loading...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<RegisterFallback />}>
+      <RegisterForm />
+    </Suspense>
   );
 }
