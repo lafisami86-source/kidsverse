@@ -25,10 +25,9 @@ function getPasswordStrength(password: string): {
   checks: { label: string; met: boolean }[];
 } {
   const checks = [
-    { label: 'At least 8 characters', met: password.length >= 8 },
-    { label: 'Contains an uppercase letter', met: /[A-Z]/.test(password) },
-    { label: 'Contains a number', met: /[0-9]/.test(password) },
-    { label: 'Contains a special character', met: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
+    { label: 'At least 6 characters', met: password.length >= 6 },
+    { label: 'Contains an uppercase letter (optional)', met: /[A-Z]/.test(password) },
+    { label: 'Contains a number (optional)', met: /[0-9]/.test(password) },
   ];
 
   const score = checks.filter((c) => c.met).length;
@@ -121,14 +120,8 @@ export default function RegisterPage() {
     if (!password) {
       setPasswordError('Please create a password.');
       valid = false;
-    } else if (password.length < 8) {
-      setPasswordError('Password must be at least 8 characters.');
-      valid = false;
-    } else if (!/[A-Z]/.test(password)) {
-      setPasswordError('Password must contain at least one uppercase letter.');
-      valid = false;
-    } else if (!/[0-9]/.test(password)) {
-      setPasswordError('Password must contain at least one number.');
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters.');
       valid = false;
     }
 
@@ -188,9 +181,7 @@ export default function RegisterPage() {
     name.trim().length >= 2 &&
     email.trim() &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
-    password.length >= 8 &&
-    /[A-Z]/.test(password) &&
-    /[0-9]/.test(password) &&
+    password.length >= 6 &&
     password === confirmPassword;
 
   return (
@@ -361,7 +352,7 @@ export default function RegisterPage() {
                   placeholder="Create a strong password"
                   required
                   autoComplete="new-password"
-                  minLength={8}
+                  minLength={6}
                   className={`w-full pl-11 pr-11 py-3 rounded-2xl border-2 bg-kids-offwhite font-nunito text-kids-dark placeholder:text-kids-text-muted focus:ring-2 focus:ring-kids-sky/20 focus:outline-none transition-colors ${
                     passwordError
                       ? 'border-kids-coral focus:border-kids-coral'

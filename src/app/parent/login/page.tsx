@@ -125,7 +125,7 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   required
                   autoComplete="current-password"
-                  minLength={8}
+                  minLength={6}
                   className="w-full pl-11 pr-11 py-3 rounded-2xl border-2 border-kids-lightgray bg-kids-offwhite font-nunito text-kids-dark placeholder:text-kids-text-muted focus:border-kids-sky focus:ring-2 focus:ring-kids-sky/20 focus:outline-none transition-colors"
                   disabled={isLoading}
                 />

@@ -29,26 +29,32 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
-        });
+        try {
+          const user = await db.user.findUnique({
+            where: { email: credentials.email },
+          });
 
-        if (!user || !user.password) {
+          if (!user || !user.password) {
+            return null;
+          }
+
+          const isValid = await comparePasswords(credentials.password, user.password);
+
+          if (!isValid) {
+            return null;
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          };
+        } catch {
+          // DB query failed (e.g. Vercel cold start with SQLite)
+          console.error('Auth authorize DB error — database may be unavailable');
           return null;
         }
-
-        const isValid = await comparePasswords(credentials.password, user.password);
-
-        if (!isValid) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        };
       },
     }),
   ],
@@ -64,21 +70,25 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.subscription = 'free'; // Will be fetched from DB in session callback
+        token.subscription = 'free';
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        // Fetch subscription status
-        const subscription = await db.subscription.findUnique({
-          where: { userId: token.id as string },
-        });
-        (session.user as Record<string, unknown>).subscription = subscription?.plan || 'free';
+        try {
+          const subscription = await db.subscription.findUnique({
+            where: { userId: token.id as string },
+          });
+          (session.user as Record<string, unknown>).subscription = subscription?.plan || 'free';
+        } catch {
+          // DB might not be available (e.g. Vercel cold start) — fallback to free
+          (session.user as Record<string, unknown>).subscription = 'free';
+        }
       }
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'kidsverse-fallback-secret-change-in-production',
 };

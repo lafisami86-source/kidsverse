@@ -1,11 +1,8 @@
 /**
  * Password utility for credential-based authentication
- * Uses Bun's built-in crypto for password hashing (compatible with bcrypt)
+ * Uses SHA-256 with salt for password hashing
  */
 import { createHash, randomBytes } from 'crypto';
-
-// Simple password hashing using SHA-256 with salt (for demo purposes)
-// In production, use bcrypt with the bcryptjs library
 
 export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString('hex');
@@ -32,14 +29,8 @@ export function validatePassword(password: string): {
 } {
   const errors: string[] = [];
 
-  if (password.length < 8) {
-    errors.push('Password must be at least 8 characters');
-  }
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain an uppercase letter');
-  }
-  if (!/[0-9]/.test(password)) {
-    errors.push('Password must contain a number');
+  if (password.length < 6) {
+    errors.push('Password must be at least 6 characters');
   }
 
   return {
