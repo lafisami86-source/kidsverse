@@ -95,22 +95,53 @@ export default function KidsSelector() {
     setErrorMessage('');
 
     try {
-      const response = await fetch('/api/child-profiles');
+      // Load localStorage profiles first
+      let localProfiles: ProfileData[] = [];
+      try {
+        const raw = localStorage.getItem('kidsverse_profiles');
+        if (raw) localProfiles = JSON.parse(raw) as ProfileData[];
+      } catch { /* ignore */ }
 
-      if (!response.ok) {
-        throw new Error(`Failed to load profiles (${response.status})`);
-      }
+      // Try API
+      let apiProfiles: ProfileData[] = [];
+      try {
+        const response = await fetch('/api/child-profiles');
+        if (response.ok) {
+          const data = await response.json();
+          apiProfiles = data.profiles ?? [];
+        }
+      } catch { /* API failed — use localStorage */ }
 
-      const data = await response.json();
-      const profileList: ProfileData[] = data.profiles ?? [];
+      // Merge: API profiles take precedence, add unique local ones
+      const apiIds = new Set(apiProfiles.map((p) => p.id));
+      const uniqueLocal = localProfiles.filter((p) => !apiIds.has(p.id));
+      const merged = [...apiProfiles, ...uniqueLocal];
 
-      if (profileList.length === 0) {
+      // Save merged to localStorage to keep in sync
+      try {
+        localStorage.setItem('kidsverse_profiles', JSON.stringify(merged));
+      } catch { /* ignore */ }
+
+      if (merged.length === 0) {
         setFetchState('empty');
       } else {
-        setProfiles(profileList);
+        setProfiles(merged);
         setFetchState('success');
       }
     } catch (err) {
+      // Final fallback: localStorage only
+      try {
+        const raw = localStorage.getItem('kidsverse_profiles');
+        if (raw) {
+          const localProfiles = JSON.parse(raw) as ProfileData[];
+          if (localProfiles.length > 0) {
+            setProfiles(localProfiles);
+            setFetchState('success');
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+
       const message = err instanceof Error ? err.message : 'Something went wrong';
       setErrorMessage(message);
       setFetchState('error');
