@@ -84,12 +84,29 @@ export default function KidsLayout({ children }: { children: React.ReactNode }) 
 
     async function fetchProfile() {
       try {
-        const res = await fetch('/api/child-profiles');
-        if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
-        const found = data.profiles?.find(
-          (p: ChildProfile) => p.id === profileId,
-        );
+        // Load from localStorage first (works on Vercel serverless)
+        let localProfiles: ChildProfile[] = [];
+        try {
+          const raw = localStorage.getItem('kidsverse_profiles');
+          if (raw) localProfiles = JSON.parse(raw) as ChildProfile[];
+        } catch { /* ignore */ }
+
+        // Try API too
+        let apiProfiles: ChildProfile[] = [];
+        try {
+          const res = await fetch('/api/child-profiles');
+          if (res.ok) {
+            const data = await res.json();
+            apiProfiles = data.profiles ?? [];
+          }
+        } catch { /* API failed */ }
+
+        // Merge
+        const apiIds = new Set(apiProfiles.map((p) => p.id));
+        const uniqueLocal = localProfiles.filter((p) => !apiIds.has(p.id));
+        const merged = [...apiProfiles, ...uniqueLocal];
+
+        const found = merged.find((p: ChildProfile) => p.id === profileId);
         if (!cancelled && found) {
           setProfile({
             id: found.id,
@@ -98,6 +115,16 @@ export default function KidsLayout({ children }: { children: React.ReactNode }) 
             avatar: found.avatar || '\uD83D\uDC3E',
             ageGroup: found.ageGroup,
             screenTimeLimit: found.screenTimeLimit || 60,
+          });
+        } else if (!cancelled) {
+          // Profile not found — use fallback with the profileId from URL
+          setProfile({
+            id: profileId,
+            name: 'Friend',
+            age: 5,
+            avatar: '\uD83D\uDC81',
+            ageGroup: 'early',
+            screenTimeLimit: 60,
           });
         }
       } catch {
