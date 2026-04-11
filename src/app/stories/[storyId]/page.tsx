@@ -7,6 +7,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Heart, BookOpen, Volume2 } from '
 import { cn } from '@/lib/utils';
 import { KidsCard } from '@/components/kids/kids-card';
 import { KidsButton } from '@/components/kids/kids-button';
+import { KidsBadge } from '@/components/kids/kids-badge';
 import { useAudio } from '@/hooks/use-audio';
 import { useAgeGroup } from '@/hooks/use-age-group';
 
@@ -168,7 +169,7 @@ export default function StoryViewer() {
           <h1 className="text-sm sm:text-base font-nunito font-extrabold text-kids-dark truncate max-w-[200px]">
             {story.title}
           </h1>
-          <KidsBadge variant="sky" size="sm">
+          <KidsBadge variant="default" size="sm">
             {currentPage + 1}/{totalPages}
           </KidsBadge>
         </div>

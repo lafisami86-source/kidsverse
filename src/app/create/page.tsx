@@ -101,7 +101,7 @@ export default function CreativeStudio() {
           <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
             {ACTIVITIES.map((activity, idx) => (
               <motion.div key={activity.id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 24, delay: 0.2 + idx * 0.12 }}>
-                <KidsCard variant="interactive" color={activity.color} padding="lg" className="flex flex-col items-center text-center gap-3 cursor-pointer h-full">
+                <KidsCard variant="interactive" color={activity.color} padding="lg" onClick={() => router.push(`/create/${activity.id}`)} className="flex flex-col items-center text-center gap-3 cursor-pointer h-full">
                   <motion.span className="text-5xl sm:text-6xl" animate={{ y: [0, -4, 0] }} transition={{ duration: 2 + idx * 0.3, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.2 }}>{activity.icon}</motion.span>
                   <h2 className="text-base sm:text-lg font-nunito font-extrabold text-kids-dark">{activity.title}</h2>
                   <p className="text-xs sm:text-sm text-kids-text-secondary">{activity.description}</p>

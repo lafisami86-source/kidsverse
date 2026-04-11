@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import { useChildProfile } from '@/app/kids/[profileId]/layout';
 import { useAgeGroup } from '@/hooks/use-age-group';
 import { useAudio } from '@/hooks/use-audio';
@@ -332,6 +333,14 @@ export default function MathGame() {
       {/* HUD */}
       <div className="flex items-center justify-between rounded-2xl bg-white p-3 shadow-kids">
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => { if (timerRef.current) clearInterval(timerRef.current); setPhase('idle'); }}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-kids-lightgray/60 transition-all hover:bg-kids-lightgray active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kids-sky"
+            aria-label="Back to menu"
+          >
+            <ArrowLeft className="size-4 text-kids-dark" />
+          </button>
           <KidsBadge variant="default" size="sm">🧮</KidsBadge>
           <span className="text-sm font-nunito font-bold text-kids-dark">
             {currentIdx + 1}/{TOTAL_PROBLEMS}

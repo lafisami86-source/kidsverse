@@ -1,5 +1,5 @@
-// Free Draw Canvas
-// TODO: Implement free-form drawing canvas with tools and color picker
+// Stamp Art
+// TODO: Implement stamp art canvas with fun stamp selection
 
 'use client';
 
@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 
-export default function DrawCanvas() {
+export default function StampArt() {
   const router = useRouter();
 
   return (
@@ -21,7 +21,7 @@ export default function DrawCanvas() {
               <ArrowLeft className="size-5 text-kids-text-secondary" />
             </button>
             <h1 className="font-nunito text-lg font-extrabold text-gradient-rainbow select-none">KidsVerse</h1>
-            <span className="text-2xl">🖌️</span>
+            <span className="text-2xl">🌺</span>
           </div>
         </div>
       </header>
@@ -33,7 +33,7 @@ export default function DrawCanvas() {
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15 }}
         >
-          🖌️
+          🌺
         </motion.span>
         <motion.h1
           className="text-3xl font-nunito font-extrabold text-kids-dark sm:text-4xl"
@@ -41,7 +41,7 @@ export default function DrawCanvas() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          Free Draw
+          Stamp Art
         </motion.h1>
         <motion.p
           className="text-center text-kids-text-secondary"
@@ -49,7 +49,7 @@ export default function DrawCanvas() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          Draw anything you imagine!
+          Create art with fun stamps!
           <br />
           Coming soon...
         </motion.p>
