@@ -453,12 +453,12 @@ function Mascot({
   const bodyRotate = mood === 'sleepy' ? -5 : mood === 'excited' ? 3 : 0;
 
   return (
-    <div className={`relative inline-flex items-center justify-center ${className}`} aria-hidden="true">
-      {/* Speech bubble */}
+    <div className={`relative inline-flex flex-col items-center ${className}`} aria-hidden="true">
+      {/* Speech bubble — outside the floating container so it stays stable */}
       <AnimatePresence>
         {speechBubble && (
           <motion.div
-            className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full z-10"
+            className="mb-1 z-10"
             initial={{ opacity: 0, scale: 0.5, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 10 }}
@@ -476,7 +476,7 @@ function Mascot({
         )}
       </AnimatePresence>
 
-      {/* Owl SVG */}
+      {/* Owl SVG — only this part floats */}
       <motion.div
         variants={animated ? floatingVariants : undefined}
         animate={animated ? 'float' : undefined}

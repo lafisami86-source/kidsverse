@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import { useChildProfile } from '@/app/kids/[profileId]/layout';
 import { useAgeGroup } from '@/hooks/use-age-group';
 import { useAudio } from '@/hooks/use-audio';
@@ -123,13 +124,21 @@ export default function PlayOverview() {
 
   return (
     <div className="flex flex-col gap-6 pb-8">
-      {/* Header */}
+      {/* Header with back button */}
       <motion.div
-        className="flex items-center gap-4"
+        className="flex items-center gap-3"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-kids transition-all hover:scale-105 hover:shadow-kids-hover active:scale-95 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-kids-sky"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="size-5 text-kids-dark" />
+        </button>
         <Mascot mood="excited" size="md" speechBubble={config.greeting} />
       </motion.div>
 

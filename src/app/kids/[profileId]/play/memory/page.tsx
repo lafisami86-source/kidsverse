@@ -305,16 +305,16 @@ export default function MemoryGame() {
   ];
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* HUD */}
-      <div className="flex items-center justify-between rounded-2xl bg-white p-3 shadow-kids">
+    <div className="flex flex-col gap-3">
+      {/* HUD — responsive layout */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white p-3 shadow-kids">
         <div className="flex items-center gap-2">
           <KidsBadge variant="default" size="sm">🃏</KidsBadge>
           <span className="text-sm font-nunito font-bold text-kids-dark">
             {matchedPairs}/{totalPairs}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <KidsBadge variant="gold" size="sm">⭐ {score}</KidsBadge>
           <KidsBadge variant="default" size="sm">🎯 {moves}</KidsBadge>
           <KidsBadge variant="default" size="sm">⏱ {formatGameTime(elapsed)}</KidsBadge>
@@ -331,12 +331,12 @@ export default function MemoryGame() {
         />
       </div>
 
-      {/* Card Grid */}
+      {/* Card Grid — responsive sizing */}
       <div
-        className="mx-auto grid gap-2 sm:gap-3"
+        className="mx-auto grid w-full gap-2 sm:gap-3"
         style={{
           gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-          maxWidth: cols === 3 ? '320px' : '400px',
+          maxWidth: cols <= 3 ? '300px' : '360px',
         }}
       >
         {cards.map((card, idx) => {
@@ -358,7 +358,6 @@ export default function MemoryGame() {
                   ? { scale: 0.95 }
                   : {}
               }
-              layout
             >
               {/* Card Back */}
               <AnimatePresence mode="wait">
@@ -372,7 +371,7 @@ export default function MemoryGame() {
                     transition={{ duration: 0.3 }}
                     style={{ perspective: 600 }}
                   >
-                    <span className="text-2xl opacity-40 sm:text-3xl">❓</span>
+                    <span className="text-3xl opacity-40 sm:text-4xl">❓</span>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -388,7 +387,7 @@ export default function MemoryGame() {
                     style={{ perspective: 600 }}
                   >
                     <motion.span
-                      className={`text-3xl sm:text-4xl ${card.isMatched ? 'opacity-100' : ''}`}
+                      className={`text-4xl sm:text-5xl ${card.isMatched ? 'opacity-100' : ''}`}
                       animate={
                         isMismatched
                           ? { x: [-4, 4, -4, 4, 0] }
