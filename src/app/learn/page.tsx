@@ -10,6 +10,8 @@ import { KidsBadge } from '@/components/kids/kids-badge';
 import { KidsProgressBar } from '@/components/kids/kids-progress-bar';
 import { KidsButton } from '@/components/kids/kids-button';
 import { useAudio } from '@/hooks/use-audio';
+import { usePremium, PremiumModal } from '@/hooks/use-premium';
+import { getLessonsForModule, type ModuleId, type AgeGroup } from '@/types/learning';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -47,8 +49,8 @@ interface LearningModule {
 const LEARNING_MODULES: LearningModule[] = [
   { id: 'alphabet', title: 'Alphabet', icon: '🔤', description: 'Learn letters A-Z', color: 'sky', gradient: 'from-sky-100 to-blue-200', lessons: 26, isPremium: false },
   { id: 'numbers', title: 'Numbers', icon: '🔢', description: 'Count from 1 to 20', color: 'grass', gradient: 'from-green-100 to-emerald-200', lessons: 10, isPremium: false },
-  { id: 'colors', title: 'Colors', icon: '🎨', description: 'Discover and mix colors', color: 'coral', gradient: 'from-rose-100 to-pink-200', lessons: 8, isPremium: false },
-  { id: 'science', title: 'Science', icon: '🔬', description: 'Explore the world', color: 'lavender', gradient: 'from-violet-100 to-purple-200', lessons: 8, isPremium: false },
+  { id: 'colors', title: 'Colors', icon: '🎨', description: 'Discover and mix colors', color: 'coral', gradient: 'from-rose-100 to-pink-200', lessons: 12, isPremium: true },
+  { id: 'science', title: 'Science', icon: '🔬', description: 'Explore the world', color: 'lavender', gradient: 'from-violet-100 to-purple-200', lessons: 12, isPremium: true },
 ];
 
 const STORAGE_KEY = 'kv-active-profile';
@@ -87,6 +89,12 @@ function getStoredProgress(): Record<string, ModuleProgress> {
   } catch {
     return {};
   }
+}
+
+function mapAgeGroup(age: number): AgeGroup {
+  if (age <= 4) return 'toddler';
+  if (age <= 7) return 'early';
+  return 'kid';
 }
 
 /* ------------------------------------------------------------------ */
@@ -152,6 +160,7 @@ function SparkleField() {
 export default function LearnOverview() {
   const router = useRouter();
   const { play: playPop } = useAudio({ frequency: 600, type: 'triangle' });
+  const { isPremium, showModal, closeModal, guardPremium } = usePremium();
 
   const [profile, setProfile] = useState<StoredProfile | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -171,6 +180,7 @@ export default function LearnOverview() {
   const activeProfile = profile || DEFAULT_PROFILE;
   const isToddler = (activeProfile.age ?? 5) <= 4;
   const isKid = (activeProfile.age ?? 5) >= 8;
+  const ageGroup = mapAgeGroup(activeProfile.age ?? 5);
 
   /* ---- Derived sizing ---- */
   const titleSize = isToddler ? 'text-3xl sm:text-4xl' : isKid ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl';
@@ -181,18 +191,34 @@ export default function LearnOverview() {
   const showDescriptions = isToddler ? false : true;
   const gridSize = isToddler ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2';
 
+  /* ---- Compute lesson counts from types ---- */
+  const lessonCounts: Record<string, number> = {};
+  LEARNING_MODULES.forEach((m) => {
+    try {
+      const lessons = getLessonsForModule(m.id as ModuleId, ageGroup);
+      lessonCounts[m.id] = lessons.length;
+    } catch {
+      lessonCounts[m.id] = m.lessons;
+    }
+  });
+
   /* ---- Computed stats ---- */
   const totalStars = Object.values(progress).reduce((sum, p) => sum + (p.stars ?? 0), 0);
   const totalLessons = Object.values(progress).reduce((sum, p) => sum + (p.completed ?? 0), 0);
-  const totalPossibleLessons = LEARNING_MODULES.reduce((sum, m) => sum + m.lessons, 0);
+  const totalPossibleLessons = LEARNING_MODULES.reduce((sum, m) => sum + (lessonCounts[m.id] ?? m.lessons), 0);
 
   /* ---- Navigation handler ---- */
   const handleModuleTap = useCallback(
-    (moduleId: string) => {
+    (moduleId: string, moduleIsPremium: boolean, moduleTitle: string) => {
       playPop();
+      if (!guardPremium(moduleIsPremium, `"${moduleTitle}" is a Premium module!`, [
+        'Unlock all learning modules',
+        'Detailed progress tracking',
+        'New lessons every month',
+      ])) return;
       router.push(`/learn/${moduleId}`);
     },
-    [playPop, router],
+    [playPop, router, guardPremium],
   );
 
   /* ---- Go back to kid profile ---- */
@@ -382,7 +408,8 @@ export default function LearnOverview() {
             <div className={cn('grid gap-4 sm:gap-5', gridSize)}>
               {LEARNING_MODULES.map((module, idx) => {
                 const modProgress = progress[module.id] ?? { completed: 0, stars: 0 };
-                const pct = module.lessons > 0 ? Math.round((modProgress.completed / module.lessons) * 100) : 0;
+                const lessonCount = lessonCounts[module.id] ?? module.lessons;
+                const pct = lessonCount > 0 ? Math.round((modProgress.completed / lessonCount) * 100) : 0;
 
                 return (
                   <motion.div
@@ -401,13 +428,13 @@ export default function LearnOverview() {
                       color={module.color}
                       padding="lg"
                       className="relative flex flex-col items-center text-center gap-3 cursor-pointer h-full"
-                      onClick={() => handleModuleTap(module.id)}
+                      onClick={() => handleModuleTap(module.id, module.isPremium, module.title)}
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          handleModuleTap(module.id);
+                          handleModuleTap(module.id, module.isPremium, module.title);
                         }
                       }}
                     >
@@ -442,11 +469,11 @@ export default function LearnOverview() {
                         <KidsProgressBar
                           value={modProgress.completed}
                           min={0}
-                          max={module.lessons}
+                          max={lessonCount}
                           size={isToddler ? 'lg' : 'md'}
                           color={module.color}
                           showLabel
-                          label={`${modProgress.completed} / ${module.lessons}`}
+                          label={`${modProgress.completed} / ${lessonCount}`}
                           className="w-full"
                         />
                       </div>
@@ -467,6 +494,13 @@ export default function LearnOverview() {
                         <KidsBadge variant="purple" size="sm">
                           ✨ Premium
                         </KidsBadge>
+                      )}
+
+                      {/* Premium lock overlay for non-subscribers */}
+                      {module.isPremium && !isPremium && (
+                        <div className="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center pointer-events-none">
+                          <span className="text-3xl" aria-hidden="true">🔒</span>
+                        </div>
                       )}
                     </KidsCard>
                   </motion.div>
@@ -502,6 +536,9 @@ export default function LearnOverview() {
           </motion.section>
         </motion.div>
       </main>
+
+      {/* Premium modal */}
+      <PremiumModal isOpen={showModal} onClose={closeModal} />
     </div>
   );
 }

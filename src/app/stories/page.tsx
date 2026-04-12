@@ -9,6 +9,7 @@ import { KidsCard } from '@/components/kids/kids-card';
 import { KidsBadge } from '@/components/kids/kids-badge';
 import { KidsButton } from '@/components/kids/kids-button';
 import { useAudio } from '@/hooks/use-audio';
+import { usePremium, PremiumModal } from '@/hooks/use-premium';
 import { STORY_CATEGORIES } from '@/lib/constants';
 
 /* ------------------------------------------------------------------ */
@@ -45,10 +46,10 @@ const STORIES: Story[] = [
   { id: 'lion-mouse', title: 'The Lion & The Mouse', description: 'A tiny mouse saves a mighty lion in this classic fable about friendship and kindness.', category: 'animals', icon: '🦁', readTime: '3 min', ageRange: [3, 7], isPremium: false, rating: 5, color: 'sun' },
   { id: 'moon-rabbit', title: 'The Moon Rabbit', description: 'Discover the legend of the rabbit who lives on the moon and makes delicious rice cakes.', category: 'bedtime', icon: '🐰', readTime: '4 min', ageRange: [3, 6], isPremium: false, rating: 5, color: 'lavender' },
   { id: 'alphabet-forest', title: 'Alphabet Forest Adventure', description: 'Walk through a magical forest where every tree represents a letter of the alphabet!', category: 'learning', icon: '🌳', readTime: '5 min', ageRange: [2, 5], isPremium: false, rating: 4, color: 'grass' },
-  { id: 'brave-little-star', title: 'The Brave Little Star', description: 'A tiny star goes on a journey to find its place among the constellations.', category: 'adventure', icon: '⭐', readTime: '4 min', ageRange: [4, 8], isPremium: false, rating: 5, color: 'sky' },
-  { id: 'giggly-giraffe', title: 'The Giggly Giraffe', description: 'Gerry the Giraffe cannot stop laughing, and his laugh is contagious!', category: 'funny', icon: '🦒', readTime: '3 min', ageRange: [2, 5], isPremium: false, rating: 4, color: 'coral' },
-  { id: 'ocean-friends', title: 'Friends of the Ocean', description: 'A dolphin and a seahorse become best friends and explore the deep blue sea together.', category: 'animals', icon: '🐬', readTime: '5 min', ageRange: [3, 7], isPremium: false, rating: 4, color: 'sky' },
-  { id: 'counting-caterpillar', title: 'The Counting Caterpillar', description: 'Follow a hungry caterpillar as it eats its way through numbers 1 to 10!', category: 'learning', icon: '🐛', readTime: '3 min', ageRange: [2, 5], isPremium: false, rating: 5, color: 'mint' },
+  { id: 'brave-little-star', title: 'The Brave Little Star', description: 'A tiny star goes on a journey to find its place among the constellations.', category: 'adventure', icon: '⭐', readTime: '4 min', ageRange: [4, 8], isPremium: true, rating: 5, color: 'sky' },
+  { id: 'giggly-giraffe', title: 'The Giggly Giraffe', description: 'Gerry the Giraffe cannot stop laughing, and his laugh is contagious!', category: 'funny', icon: '🦒', readTime: '3 min', ageRange: [2, 5], isPremium: true, rating: 4, color: 'coral' },
+  { id: 'ocean-friends', title: 'Friends of the Ocean', description: 'A dolphin and a seahorse become best friends and explore the deep blue sea together.', category: 'animals', icon: '🐬', readTime: '5 min', ageRange: [3, 7], isPremium: true, rating: 4, color: 'sky' },
+  { id: 'counting-caterpillar', title: 'The Counting Caterpillar', description: 'Follow a hungry caterpillar as it eats its way through numbers 1 to 10!', category: 'learning', icon: '🐛', readTime: '3 min', ageRange: [2, 5], isPremium: true, rating: 5, color: 'mint' },
   { id: 'dragon-dreams', title: 'Dragon Dreams', description: 'A friendly dragon learns that being different is what makes you special.', category: 'adventure', icon: '🐉', readTime: '6 min', ageRange: [5, 10], isPremium: true, rating: 5, color: 'coral' },
   { id: 'sleepy-owl', title: 'The Sleepy Owl', description: 'Oliver the Owl wants to stay awake and see the sunrise, but sleepiness keeps catching him.', category: 'bedtime', icon: '🦉', readTime: '4 min', ageRange: [2, 5], isPremium: false, rating: 5, color: 'lavender' },
 ];
@@ -130,6 +131,7 @@ export default function StoriesLibrary() {
   const router = useRouter();
   const { play: playPop } = useAudio({ frequency: 600, type: 'triangle' });
   const { play: playHeart } = useAudio({ frequency: 1000, type: 'sine' });
+  const { isPremium, showModal, closeModal, guardPremium } = usePremium();
 
   const [profile, setProfile] = useState<StoredProfile | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -161,11 +163,16 @@ export default function StoriesLibrary() {
 
   /* ---- Handlers ---- */
   const handleStoryTap = useCallback(
-    (storyId: string) => {
+    (story: Story) => {
       playPop();
-      router.push(`/stories/${storyId}`);
+      if (!guardPremium(story.isPremium, `"${story.title}" is a Premium story!`, [
+        'Read all premium stories',
+        'Offline reading mode',
+        'New stories added weekly',
+      ])) return;
+      router.push(`/stories/${story.id}`);
     },
-    [playPop, router],
+    [playPop, router, guardPremium],
   );
 
   const handleFavorite = useCallback(
@@ -359,7 +366,7 @@ export default function StoriesLibrary() {
                       color={story.color}
                       padding="md"
                       className="relative flex flex-col gap-2 cursor-pointer h-full"
-                      onClick={() => handleStoryTap(story.id)}
+                      onClick={() => handleStoryTap(story)}
                     >
                       {/* Story icon + favorite button */}
                       <div className="flex items-start justify-between">
@@ -419,6 +426,13 @@ export default function StoriesLibrary() {
                           </KidsBadge>
                         )}
                       </div>
+
+                      {/* Premium lock overlay for non-subscribers */}
+                      {story.isPremium && !isPremium && (
+                        <div className="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center pointer-events-none">
+                          <span className="text-3xl" aria-hidden="true">🔒</span>
+                        </div>
+                      )}
                     </KidsCard>
                   </motion.div>
                 );
@@ -439,6 +453,9 @@ export default function StoriesLibrary() {
           </motion.section>
         </motion.div>
       </main>
+
+      {/* Premium modal */}
+      <PremiumModal isOpen={showModal} onClose={closeModal} />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { KidsCard } from '@/components/kids/kids-card';
 import { KidsBadge } from '@/components/kids/kids-badge';
 import { KidsButton } from '@/components/kids/kids-button';
 import { useAudio } from '@/hooks/use-audio';
+import { usePremium, PremiumModal } from '@/hooks/use-premium';
 import { VIDEO_CATEGORIES } from '@/lib/constants';
 
 /* ------------------------------------------------------------------ */
@@ -45,15 +46,15 @@ const VIDEOS: Video[] = [
   { id: 'abc-song', title: 'The ABC Song', description: 'Sing along and learn the alphabet with this catchy song!', category: 'songs', thumbnail: '🎤', duration: '2:30', ageRange: [2, 5], isPremium: false, views: '2.1M', color: 'sun' },
   { id: 'counting-fun', title: 'Counting to 20', description: 'Count from 1 to 20 with colorful animals and fun music.', category: 'songs', thumbnail: '🔢', duration: '3:15', ageRange: [2, 5], isPremium: false, views: '1.8M', color: 'grass' },
   { id: 'colors-rainbow', title: 'Colors of the Rainbow', description: 'Learn all the colors of the rainbow with painting fun!', category: 'art', thumbnail: '🎨', duration: '4:00', ageRange: [2, 6], isPremium: false, views: '3.5M', color: 'coral' },
-  { id: 'solar-system', title: 'The Solar System', description: 'Explore our solar system and learn about all the planets!', category: 'science', thumbnail: '🪐', duration: '5:30', ageRange: [5, 10], isPremium: false, views: '4.2M', color: 'sky' },
-  { id: 'drawing-animals', title: 'How to Draw Animals', description: 'Step-by-step instructions to draw cute animals easily.', category: 'art', thumbnail: '🐾', duration: '6:00', ageRange: [4, 10], isPremium: false, views: '2.7M', color: 'mint' },
+  { id: 'solar-system', title: 'The Solar System', description: 'Explore our solar system and learn about all the planets!', category: 'science', thumbnail: '🪐', duration: '5:30', ageRange: [5, 10], isPremium: true, views: '4.2M', color: 'sky' },
+  { id: 'drawing-animals', title: 'How to Draw Animals', description: 'Step-by-step instructions to draw cute animals easily.', category: 'art', thumbnail: '🐾', duration: '6:00', ageRange: [4, 10], isPremium: true, views: '2.7M', color: 'mint' },
   { id: 'three-little-pigs', title: 'Three Little Pigs', description: 'Watch the classic story of the Three Little Pigs come alive!', category: 'stories', thumbnail: '🐷', duration: '4:45', ageRange: [2, 7], isPremium: false, views: '5.1M', color: 'coral' },
   { id: 'shapes-song', title: 'The Shapes Song', description: 'Learn circles, squares, triangles and more with music!', category: 'songs', thumbnail: '🔷', duration: '2:50', ageRange: [2, 5], isPremium: false, views: '1.5M', color: 'sun' },
   { id: 'volcano-science', title: 'How Volcanoes Work', description: 'Discover what makes volcanoes erupt in this exciting science video!', category: 'science', thumbnail: '🌋', duration: '5:00', ageRange: [5, 10], isPremium: true, views: '3.8M', color: 'coral' },
   { id: 'ocean-animals', title: 'Ocean Animals for Kids', description: 'Dive deep into the ocean and meet amazing sea creatures!', category: 'science', thumbnail: '🐙', duration: '4:20', ageRange: [3, 8], isPremium: false, views: '6.3M', color: 'sky' },
-  { id: 'dance-party', title: 'Kids Dance Party', description: 'Get up and dance with these fun moves for kids of all ages!', category: 'songs', thumbnail: '💃', duration: '3:45', ageRange: [2, 8], isPremium: false, views: '8.1M', color: 'lavender' },
-  { id: 'paper-crafts', title: 'Easy Paper Crafts', description: 'Make amazing things with just paper, scissors and glue!', category: 'art', thumbnail: '✂️', duration: '7:00', ageRange: [4, 10], isPremium: false, views: '1.9M', color: 'grass' },
-  { id: 'butterfly-life', title: 'Life Cycle of a Butterfly', description: 'Watch a caterpillar transform into a beautiful butterfly!', category: 'science', thumbnail: '🦋', duration: '3:30', ageRange: [3, 7], isPremium: false, views: '4.5M', color: 'mint' },
+  { id: 'dance-party', title: 'Kids Dance Party', description: 'Get up and dance with these fun moves for kids of all ages!', category: 'songs', thumbnail: '💃', duration: '3:45', ageRange: [2, 8], isPremium: true, views: '8.1M', color: 'lavender' },
+  { id: 'paper-crafts', title: 'Easy Paper Crafts', description: 'Make amazing things with just paper, scissors and glue!', category: 'art', thumbnail: '✂️', duration: '7:00', ageRange: [4, 10], isPremium: true, views: '1.9M', color: 'grass' },
+  { id: 'butterfly-life', title: 'Life Cycle of a Butterfly', description: 'Watch a caterpillar transform into a beautiful butterfly!', category: 'science', thumbnail: '🦋', duration: '3:30', ageRange: [3, 7], isPremium: true, views: '4.5M', color: 'mint' },
 ];
 
 const STORAGE_KEY = 'kv-active-profile';
@@ -110,6 +111,7 @@ const itemVariants = {
 export default function VideoBrowser() {
   const router = useRouter();
   const { play: playPop } = useAudio({ frequency: 600, type: 'triangle' });
+  const { isPremium, showModal, closeModal, guardPremium } = usePremium();
 
   const [profile, setProfile] = useState<StoredProfile | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -146,11 +148,16 @@ export default function VideoBrowser() {
 
   /* ---- Handlers ---- */
   const handleVideoTap = useCallback(
-    (videoId: string) => {
+    (video: Video) => {
       playPop();
-      router.push(`/watch/${videoId}`);
+      if (!guardPremium(video.isPremium, `"${video.title}" is a Premium video!`, [
+        'Watch all premium videos',
+        'Ad-free experience',
+        'Download for offline viewing',
+      ])) return;
+      router.push(`/watch/${video.id}`);
     },
-    [playPop, router],
+    [playPop, router, guardPremium],
   );
 
   /* ---- Not mounted yet ---- */
@@ -308,7 +315,7 @@ export default function VideoBrowser() {
                     color={video.color}
                     padding="none"
                     className="relative flex flex-col cursor-pointer h-full overflow-hidden"
-                    onClick={() => handleVideoTap(video.id)}
+                    onClick={() => handleVideoTap(video)}
                   >
                     {/* Thumbnail area */}
                     <div className="relative aspect-video bg-gradient-to-br from-kids-lightgray to-kids-offwhite flex items-center justify-center">
@@ -364,6 +371,13 @@ export default function VideoBrowser() {
                         )}
                       </div>
                     </div>
+
+                    {/* Premium lock overlay for non-subscribers */}
+                    {video.isPremium && !isPremium && (
+                      <div className="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center pointer-events-none">
+                        <span className="text-3xl" aria-hidden="true">🔒</span>
+                      </div>
+                    )}
                   </KidsCard>
                 </motion.div>
               ))}
@@ -383,6 +397,9 @@ export default function VideoBrowser() {
           </motion.section>
         </motion.div>
       </main>
+
+      {/* Premium modal */}
+      <PremiumModal isOpen={showModal} onClose={closeModal} />
     </div>
   );
 }

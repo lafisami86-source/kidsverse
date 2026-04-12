@@ -1,7 +1,7 @@
 // Game Types — KidsVerse Games & Challenges
 // Types, constants, and game definitions for the games section
 
-export type GameType = 'memory' | 'math' | 'puzzle' | 'spelling';
+export type GameType = 'memory' | 'math' | 'puzzle' | 'spelling' | 'word-search' | 'quiz' | 'trivia' | 'pattern';
 export type GameDifficulty = 1 | 2 | 3;
 
 export interface Game {
@@ -15,6 +15,7 @@ export interface Game {
   difficulty: GameDifficulty;
   ageGroups: ('toddler' | 'early' | 'kid')[];
   badgeId: string;
+  isPremium: boolean;
 }
 
 export interface GameScoreRecord {
@@ -51,6 +52,7 @@ export const GAMES: Game[] = [
     difficulty: 1,
     ageGroups: ['toddler', 'early', 'kid'],
     badgeId: 'memory-champion',
+    isPremium: false,
   },
   {
     id: 'math',
@@ -63,6 +65,7 @@ export const GAMES: Game[] = [
     difficulty: 1,
     ageGroups: ['toddler', 'early', 'kid'],
     badgeId: 'math-whiz',
+    isPremium: false,
   },
   {
     id: 'puzzle',
@@ -75,6 +78,7 @@ export const GAMES: Game[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     badgeId: 'puzzle-pro',
+    isPremium: false,
   },
   {
     id: 'spelling',
@@ -87,6 +91,60 @@ export const GAMES: Game[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     badgeId: 'spelling-bee',
+    isPremium: false,
+  },
+  // ── Premium Games ──
+  {
+    id: 'word-search',
+    title: 'Word Search',
+    icon: '🔍',
+    description: 'Find hidden words in a grid!',
+    color: 'sun',
+    gradientFrom: 'from-yellow-100',
+    gradientTo: 'to-amber-200',
+    difficulty: 2,
+    ageGroups: ['early', 'kid'],
+    badgeId: 'word-hunter',
+    isPremium: true,
+  },
+  {
+    id: 'quiz',
+    title: 'Science Quiz',
+    icon: '🧪',
+    description: 'Test your science knowledge!',
+    color: 'mint',
+    gradientFrom: 'from-teal-100',
+    gradientTo: 'to-emerald-200',
+    difficulty: 2,
+    ageGroups: ['early', 'kid'],
+    badgeId: 'science-star',
+    isPremium: true,
+  },
+  {
+    id: 'trivia',
+    title: 'Brain Trivia',
+    icon: '🧠',
+    description: 'Fun facts challenge!',
+    color: 'lavender',
+    gradientFrom: 'from-violet-100',
+    gradientTo: 'to-purple-200',
+    difficulty: 3,
+    ageGroups: ['kid'],
+    badgeId: 'trivia-master',
+    isPremium: true,
+  },
+  {
+    id: 'pattern',
+    title: 'Pattern Master',
+    icon: '🔷',
+    description: 'Complete the sequence!',
+    color: 'sky',
+    gradientFrom: 'from-sky-100',
+    gradientTo: 'to-blue-200',
+    difficulty: 2,
+    ageGroups: ['early', 'kid'],
+    badgeId: 'pattern-pro',
+    isPremium: true,
   },
 ];
 
@@ -137,6 +195,15 @@ export interface SpellingWord {
   letters: string[];
   distractors: string[];
 }
+
+export const SPELLING_WORDS_TODDLER: SpellingWord[] = [
+  { word: 'CAT', hint: '🐱', letters: ['C', 'A', 'T'], distractors: ['O'] },
+  { word: 'DOG', hint: '🐶', letters: ['D', 'O', 'G'], distractors: ['X'] },
+  { word: 'SUN', hint: '☀️', letters: ['S', 'U', 'N'], distractors: ['M'] },
+  { word: 'HAT', hint: '🎩', letters: ['H', 'A', 'T'], distractors: ['B'] },
+  { word: 'RED', hint: '🔴', letters: ['R', 'E', 'D'], distractors: ['P'] },
+  { word: 'BIG', hint: '🐘', letters: ['B', 'I', 'G'], distractors: ['F'] },
+];
 
 export const SPELLING_WORDS_EARLY: SpellingWord[] = [
   { word: 'CAT', hint: '🐱', letters: ['C', 'A', 'T'], distractors: ['O'] },

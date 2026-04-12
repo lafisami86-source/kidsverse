@@ -113,6 +113,7 @@ function makeAlphabetLesson(
   order: number,
   difficulty: 1 | 2 | 3,
   ageGroups: AgeGroup[],
+  isPremium: boolean,
 ): Lesson {
   return {
     id: `alphabet-${letter.toLowerCase()}`,
@@ -122,42 +123,42 @@ function makeAlphabetLesson(
     difficulty,
     ageGroups,
     order,
-    isPremium: false,
+    isPremium,
   };
 }
 
 export const ALPHABET_LESSONS: Lesson[] = [
   // A–E: Difficulty 1
-  makeAlphabetLesson('A', 1, 1, ALPHABET_EASY),
-  makeAlphabetLesson('B', 2, 1, ALPHABET_EASY),
-  makeAlphabetLesson('C', 3, 1, ALPHABET_EASY),
-  makeAlphabetLesson('D', 4, 1, ALPHABET_EASY),
-  makeAlphabetLesson('E', 5, 1, ALPHABET_EASY),
+  makeAlphabetLesson('A', 1, 1, ALPHABET_EASY, false),
+  makeAlphabetLesson('B', 2, 1, ALPHABET_EASY, false),
+  makeAlphabetLesson('C', 3, 1, ALPHABET_EASY, false),
+  makeAlphabetLesson('D', 4, 1, ALPHABET_EASY, false),
+  makeAlphabetLesson('E', 5, 1, ALPHABET_EASY, false),
   // F–J: Difficulty 1
-  makeAlphabetLesson('F', 6, 1, ALPHABET_EASY),
-  makeAlphabetLesson('G', 7, 1, ALPHABET_EASY),
-  makeAlphabetLesson('H', 8, 1, ALPHABET_EASY),
-  makeAlphabetLesson('I', 9, 1, ALPHABET_EASY),
-  makeAlphabetLesson('J', 10, 1, ALPHABET_EASY),
-  // K–O: Difficulty 2
-  makeAlphabetLesson('K', 11, 2, ALPHABET_MEDIUM),
-  makeAlphabetLesson('L', 12, 2, ALPHABET_MEDIUM),
-  makeAlphabetLesson('M', 13, 2, ALPHABET_MEDIUM),
-  makeAlphabetLesson('N', 14, 2, ALPHABET_MEDIUM),
-  makeAlphabetLesson('O', 15, 2, ALPHABET_MEDIUM),
-  // P–T: Difficulty 2
-  makeAlphabetLesson('P', 16, 2, ALPHABET_MEDIUM),
-  makeAlphabetLesson('Q', 17, 2, ALPHABET_MEDIUM),
-  makeAlphabetLesson('R', 18, 2, ALPHABET_MEDIUM),
-  makeAlphabetLesson('S', 19, 2, ALPHABET_MEDIUM),
-  makeAlphabetLesson('T', 20, 2, ALPHABET_MEDIUM),
-  // U–Z: Difficulty 3
-  makeAlphabetLesson('U', 21, 3, ALPHABET_HARD),
-  makeAlphabetLesson('V', 22, 3, ALPHABET_HARD),
-  makeAlphabetLesson('W', 23, 3, ALPHABET_HARD),
-  makeAlphabetLesson('X', 24, 3, ALPHABET_HARD),
-  makeAlphabetLesson('Y', 25, 3, ALPHABET_HARD),
-  makeAlphabetLesson('Z', 26, 3, ALPHABET_HARD),
+  makeAlphabetLesson('F', 6, 1, ALPHABET_EASY, false),
+  makeAlphabetLesson('G', 7, 1, ALPHABET_EASY, false),
+  makeAlphabetLesson('H', 8, 1, ALPHABET_EASY, false),
+  makeAlphabetLesson('I', 9, 1, ALPHABET_EASY, false),
+  makeAlphabetLesson('J', 10, 1, ALPHABET_EASY, false),
+  // K–O: Difficulty 2 (Premium)
+  makeAlphabetLesson('K', 11, 2, ALPHABET_MEDIUM, true),
+  makeAlphabetLesson('L', 12, 2, ALPHABET_MEDIUM, true),
+  makeAlphabetLesson('M', 13, 2, ALPHABET_MEDIUM, true),
+  makeAlphabetLesson('N', 14, 2, ALPHABET_MEDIUM, true),
+  makeAlphabetLesson('O', 15, 2, ALPHABET_MEDIUM, true),
+  // P–T: Difficulty 2 (Premium)
+  makeAlphabetLesson('P', 16, 2, ALPHABET_MEDIUM, true),
+  makeAlphabetLesson('Q', 17, 2, ALPHABET_MEDIUM, true),
+  makeAlphabetLesson('R', 18, 2, ALPHABET_MEDIUM, true),
+  makeAlphabetLesson('S', 19, 2, ALPHABET_MEDIUM, true),
+  makeAlphabetLesson('T', 20, 2, ALPHABET_MEDIUM, true),
+  // U–Z: Difficulty 3 (Premium)
+  makeAlphabetLesson('U', 21, 3, ALPHABET_HARD, true),
+  makeAlphabetLesson('V', 22, 3, ALPHABET_HARD, true),
+  makeAlphabetLesson('W', 23, 3, ALPHABET_HARD, true),
+  makeAlphabetLesson('X', 24, 3, ALPHABET_HARD, true),
+  makeAlphabetLesson('Y', 25, 3, ALPHABET_HARD, true),
+  makeAlphabetLesson('Z', 26, 3, ALPHABET_HARD, true),
 ];
 
 // ─── Numbers Lessons (10) ────────────────────────────────────────────────────
@@ -191,7 +192,7 @@ export const NUMBERS_LESSONS: Lesson[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     order: 3,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'numbers-16to20',
@@ -201,7 +202,7 @@ export const NUMBERS_LESSONS: Lesson[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     order: 4,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'numbers-addition',
@@ -211,7 +212,7 @@ export const NUMBERS_LESSONS: Lesson[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     order: 5,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'numbers-subtraction',
@@ -221,7 +222,7 @@ export const NUMBERS_LESSONS: Lesson[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     order: 6,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'numbers-patterns',
@@ -231,7 +232,7 @@ export const NUMBERS_LESSONS: Lesson[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     order: 7,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'numbers-by2s',
@@ -241,7 +242,7 @@ export const NUMBERS_LESSONS: Lesson[] = [
     difficulty: 3,
     ageGroups: ['kid'],
     order: 8,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'numbers-by5s',
@@ -251,7 +252,7 @@ export const NUMBERS_LESSONS: Lesson[] = [
     difficulty: 3,
     ageGroups: ['kid'],
     order: 9,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'numbers-by10s',
@@ -261,7 +262,7 @@ export const NUMBERS_LESSONS: Lesson[] = [
     difficulty: 3,
     ageGroups: ['kid'],
     order: 10,
-    isPremium: false,
+    isPremium: true,
   },
 ];
 
@@ -276,7 +277,7 @@ export const COLORS_LESSONS: Lesson[] = [
     difficulty: 1,
     ageGroups: ['toddler', 'early', 'kid'],
     order: 1,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'colors-secondary',
@@ -286,7 +287,7 @@ export const COLORS_LESSONS: Lesson[] = [
     difficulty: 1,
     ageGroups: ['toddler', 'early', 'kid'],
     order: 2,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'colors-warm',
@@ -296,7 +297,7 @@ export const COLORS_LESSONS: Lesson[] = [
     difficulty: 1,
     ageGroups: ['toddler', 'early', 'kid'],
     order: 3,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'colors-cool',
@@ -306,7 +307,7 @@ export const COLORS_LESSONS: Lesson[] = [
     difficulty: 1,
     ageGroups: ['toddler', 'early', 'kid'],
     order: 4,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'colors-mixing',
@@ -316,7 +317,7 @@ export const COLORS_LESSONS: Lesson[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     order: 5,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'colors-light-dark',
@@ -326,7 +327,7 @@ export const COLORS_LESSONS: Lesson[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     order: 6,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'colors-patterns',
@@ -336,7 +337,7 @@ export const COLORS_LESSONS: Lesson[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     order: 7,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'colors-art-challenge',
@@ -346,7 +347,48 @@ export const COLORS_LESSONS: Lesson[] = [
     difficulty: 3,
     ageGroups: ['kid'],
     order: 8,
-    isPremium: false,
+    isPremium: true,
+  },
+  // ── New premium Colors lessons ──
+  {
+    id: 'colors-emotions',
+    moduleId: 'colors',
+    title: 'Colors & Emotions',
+    description: 'Discover how different colors make you feel — happy yellow, calm blue, and more!',
+    difficulty: 1,
+    ageGroups: ['toddler', 'early', 'kid'],
+    order: 9,
+    isPremium: true,
+  },
+  {
+    id: 'colors-nature-palette',
+    moduleId: 'colors',
+    title: 'Nature\'s Color Palette',
+    description: 'Explore the amazing colors found in nature — from rainbows to ocean depths',
+    difficulty: 2,
+    ageGroups: ['early', 'kid'],
+    order: 10,
+    isPremium: true,
+  },
+  {
+    id: 'colors-complementary',
+    moduleId: 'colors',
+    title: 'Complementary Colors',
+    description: 'Learn which colors look great together and create eye-catching combinations',
+    difficulty: 2,
+    ageGroups: ['early', 'kid'],
+    order: 11,
+    isPremium: true,
+  },
+  {
+    id: 'colors-world-cultures',
+    moduleId: 'colors',
+    title: 'Colors in World Cultures',
+    description: 'Travel the world and see what different colors mean in various cultures',
+    difficulty: 3,
+    ageGroups: ['kid'],
+    order: 12,
+    isPremium: true,
   },
 ];
 
@@ -361,7 +403,7 @@ export const SCIENCE_LESSONS: Lesson[] = [
     difficulty: 1,
     ageGroups: ['toddler', 'early', 'kid'],
     order: 1,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'science-animals',
@@ -371,7 +413,7 @@ export const SCIENCE_LESSONS: Lesson[] = [
     difficulty: 1,
     ageGroups: ['toddler', 'early', 'kid'],
     order: 2,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'science-plants',
@@ -381,7 +423,7 @@ export const SCIENCE_LESSONS: Lesson[] = [
     difficulty: 1,
     ageGroups: ['toddler', 'early', 'kid'],
     order: 3,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'science-weather',
@@ -391,7 +433,7 @@ export const SCIENCE_LESSONS: Lesson[] = [
     difficulty: 1,
     ageGroups: ['toddler', 'early', 'kid'],
     order: 4,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'science-senses',
@@ -401,7 +443,7 @@ export const SCIENCE_LESSONS: Lesson[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     order: 5,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'science-habitats',
@@ -411,7 +453,7 @@ export const SCIENCE_LESSONS: Lesson[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     order: 6,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'science-life-cycles',
@@ -421,7 +463,7 @@ export const SCIENCE_LESSONS: Lesson[] = [
     difficulty: 2,
     ageGroups: ['early', 'kid'],
     order: 7,
-    isPremium: false,
+    isPremium: true,
   },
   {
     id: 'science-solar-system',
@@ -431,7 +473,48 @@ export const SCIENCE_LESSONS: Lesson[] = [
     difficulty: 3,
     ageGroups: ['kid'],
     order: 8,
-    isPremium: false,
+    isPremium: true,
+  },
+  // ── New premium Science lessons ──
+  {
+    id: 'science-dinosaurs',
+    moduleId: 'science',
+    title: 'Dinosaurs',
+    description: 'Meet the mighty dinosaurs that roamed the Earth millions of years ago!',
+    difficulty: 1,
+    ageGroups: ['toddler', 'early', 'kid'],
+    order: 9,
+    isPremium: true,
+  },
+  {
+    id: 'science-space-animals',
+    moduleId: 'science',
+    title: 'Animals in Space',
+    description: 'Discover the amazing animals that traveled to space and what they found there',
+    difficulty: 2,
+    ageGroups: ['early', 'kid'],
+    order: 10,
+    isPremium: true,
+  },
+  {
+    id: 'science-experiments',
+    moduleId: 'science',
+    title: 'Easy Science Experiments',
+    description: 'Try fun and safe experiments you can do at home with everyday items',
+    difficulty: 2,
+    ageGroups: ['early', 'kid'],
+    order: 11,
+    isPremium: true,
+  },
+  {
+    id: 'science-earth-layers',
+    moduleId: 'science',
+    title: 'Layers of the Earth',
+    description: 'Journey to the center of the Earth and discover its hidden layers',
+    difficulty: 3,
+    ageGroups: ['kid'],
+    order: 12,
+    isPremium: true,
   },
 ];
 

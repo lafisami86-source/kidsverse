@@ -7,6 +7,8 @@ import { ArrowLeft, Gamepad2 } from 'lucide-react';
 import { KidsCard } from '@/components/kids/kids-card';
 import { KidsBadge } from '@/components/kids/kids-badge';
 import { useAudio } from '@/hooks/use-audio';
+import { usePremium, PremiumModal } from '@/hooks/use-premium';
+import { GAMES } from '@/types/games';
 
 /* ------------------------------------------------------------------ */
 /*  Types & Constants                                                  */
@@ -28,13 +30,6 @@ const DEFAULT_PROFILE: StoredProfile = {
   avatar: '🌟', ageGroup: 'early', screenTimeLimit: 60,
 };
 
-const GAMES = [
-  { id: 'memory', title: 'Memory Match', icon: '🧠', description: 'Flip cards and find matching pairs!', color: 'sky' as const },
-  { id: 'math', title: 'Math Fun', icon: '🔢', description: 'Solve fun math problems!', color: 'grass' as const },
-  { id: 'puzzle', title: 'Puzzle Time', icon: '🧩', description: 'Put the pieces together!', color: 'coral' as const },
-  { id: 'spelling', title: 'Spelling Bee', icon: '🔤', description: 'Learn to spell new words!', color: 'lavender' as const },
-];
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.12, delayChildren: 0.2 } },
@@ -51,6 +46,7 @@ const itemVariants = {
 export default function PlayOverview() {
   const router = useRouter();
   const { play: playPop } = useAudio({ frequency: 600, type: 'triangle' });
+  const { isPremium, showModal, closeModal, guardPremium } = usePremium();
   const [profile, setProfile] = useState<StoredProfile | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -77,11 +73,16 @@ export default function PlayOverview() {
   }, [profile, router]);
 
   const handleGameTap = useCallback(
-    (gameId: string) => {
+    (gameId: string, gameIsPremium: boolean, gameTitle: string) => {
       playPop();
+      if (!guardPremium(gameIsPremium, `"${gameTitle}" is a Premium game!`, [
+        'Unlock all premium games',
+        'Track your high scores',
+        'New games added monthly',
+      ])) return;
       router.push(`/kids/${activeProfile.id}/play/${gameId}`);
     },
-    [playPop, router, activeProfile.id],
+    [playPop, router, activeProfile.id, guardPremium],
   );
 
   if (!mounted) {
@@ -121,16 +122,39 @@ export default function PlayOverview() {
           <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
             {GAMES.map((game, idx) => (
               <motion.div key={game.id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 24, delay: 0.2 + idx * 0.12 }}>
-                <KidsCard variant="interactive" color={game.color} padding="lg" className="flex flex-col items-center text-center gap-3 cursor-pointer h-full" onClick={() => handleGameTap(game.id)}>
+                <KidsCard
+                  variant="interactive"
+                  color={game.color}
+                  padding="lg"
+                  className="relative flex flex-col items-center text-center gap-3 cursor-pointer h-full"
+                  onClick={() => handleGameTap(game.id, game.isPremium, game.title)}
+                >
                   <motion.span className="text-5xl sm:text-6xl" animate={{ y: [0, -4, 0] }} transition={{ duration: 2 + idx * 0.3, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.2 }}>{game.icon}</motion.span>
                   <h2 className="text-base sm:text-lg font-nunito font-extrabold text-kids-dark">{game.title}</h2>
                   <p className="text-xs sm:text-sm text-kids-text-secondary">{game.description}</p>
+
+                  {/* Premium badge */}
+                  {game.isPremium && (
+                    <KidsBadge variant="purple" size="sm">
+                      ✨ Premium
+                    </KidsBadge>
+                  )}
+
+                  {/* Premium lock overlay for non-subscribers */}
+                  {game.isPremium && !isPremium && (
+                    <div className="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center pointer-events-none">
+                      <span className="text-3xl" aria-hidden="true">🔒</span>
+                    </div>
+                  )}
                 </KidsCard>
               </motion.div>
             ))}
           </motion.section>
         </motion.div>
       </main>
+
+      {/* Premium modal */}
+      <PremiumModal isOpen={showModal} onClose={closeModal} />
     </div>
   );
 }

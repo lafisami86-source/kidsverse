@@ -5,6 +5,9 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { KidsCard } from '@/components/kids/kids-card';
+import { KidsBadge } from '@/components/kids/kids-badge';
+import { useAudio } from '@/hooks/use-audio';
+import { usePremium, PremiumModal } from '@/hooks/use-premium';
 
 /* ------------------------------------------------------------------ */
 /*  Types & Constants                                                  */
@@ -27,10 +30,10 @@ const DEFAULT_PROFILE: StoredProfile = {
 };
 
 const ACTIVITIES = [
-  { id: 'draw', title: 'Free Draw', icon: '🖌️', description: 'Draw anything you imagine!', color: 'coral' as const },
-  { id: 'color', title: 'Coloring', icon: '🖍️', description: 'Color beautiful pictures!', color: 'sun' as const },
-  { id: 'stamp', title: 'Stamp Art', icon: '🌺', description: 'Create art with fun stamps!', color: 'grass' as const },
-  { id: 'pixel', title: 'Pixel Art', icon: '🟦', description: 'Make pixel art masterpieces!', color: 'sky' as const },
+  { id: 'draw', title: 'Free Draw', icon: '🖌️', description: 'Draw anything you imagine!', color: 'coral' as const, isPremium: false },
+  { id: 'color', title: 'Coloring', icon: '🖍️', description: 'Color beautiful pictures!', color: 'sun' as const, isPremium: false },
+  { id: 'stamp', title: 'Stamp Art', icon: '🌺', description: 'Create art with fun stamps!', color: 'grass' as const, isPremium: true },
+  { id: 'pixel', title: 'Pixel Art', icon: '🟦', description: 'Make pixel art masterpieces!', color: 'sky' as const, isPremium: true },
 ];
 
 const containerVariants = {
@@ -48,6 +51,8 @@ const itemVariants = {
 
 export default function CreativeStudio() {
   const router = useRouter();
+  const { play: playPop } = useAudio({ frequency: 600, type: 'triangle' });
+  const { isPremium, showModal, closeModal, guardPremium } = usePremium();
   const [profile, setProfile] = useState<StoredProfile | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -72,6 +77,19 @@ export default function CreativeStudio() {
       router.push('/');
     }
   }, [profile, router]);
+
+  const handleActivityTap = useCallback(
+    (activityId: string, activityIsPremium: boolean, activityTitle: string) => {
+      playPop();
+      if (!guardPremium(activityIsPremium, `"${activityTitle}" is a Premium activity!`, [
+        'Unlock all creative tools',
+        'Save and share your art',
+        'New templates every week',
+      ])) return;
+      router.push(`/create/${activityId}`);
+    },
+    [playPop, router, guardPremium],
+  );
 
   if (!mounted) {
     return (
@@ -110,16 +128,39 @@ export default function CreativeStudio() {
           <motion.section variants={itemVariants} className="grid grid-cols-2 gap-4">
             {ACTIVITIES.map((activity, idx) => (
               <motion.div key={activity.id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 24, delay: 0.2 + idx * 0.12 }}>
-                <KidsCard variant="interactive" color={activity.color} padding="lg" onClick={() => router.push(`/create/${activity.id}`)} className="flex flex-col items-center text-center gap-3 cursor-pointer h-full">
+                <KidsCard
+                  variant="interactive"
+                  color={activity.color}
+                  padding="lg"
+                  onClick={() => handleActivityTap(activity.id, activity.isPremium, activity.title)}
+                  className="relative flex flex-col items-center text-center gap-3 cursor-pointer h-full"
+                >
                   <motion.span className="text-5xl sm:text-6xl" animate={{ y: [0, -4, 0] }} transition={{ duration: 2 + idx * 0.3, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.2 }}>{activity.icon}</motion.span>
                   <h2 className="text-base sm:text-lg font-nunito font-extrabold text-kids-dark">{activity.title}</h2>
                   <p className="text-xs sm:text-sm text-kids-text-secondary">{activity.description}</p>
+
+                  {/* Premium badge */}
+                  {activity.isPremium && (
+                    <KidsBadge variant="purple" size="sm">
+                      ✨ Premium
+                    </KidsBadge>
+                  )}
+
+                  {/* Premium lock overlay for non-subscribers */}
+                  {activity.isPremium && !isPremium && (
+                    <div className="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center pointer-events-none">
+                      <span className="text-3xl" aria-hidden="true">🔒</span>
+                    </div>
+                  )}
                 </KidsCard>
               </motion.div>
             ))}
           </motion.section>
         </motion.div>
       </main>
+
+      {/* Premium modal */}
+      <PremiumModal isOpen={showModal} onClose={closeModal} />
     </div>
   );
 }
