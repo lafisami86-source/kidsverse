@@ -67,6 +67,15 @@ export default function PlayOverview() {
 
   const activeProfile = profile || DEFAULT_PROFILE;
 
+  /* ---- Go back to kid profile ---- */
+  const handleGoBack = useCallback(() => {
+    if (profile?.id) {
+      router.push(`/kids/${profile.id}`);
+    } else {
+      router.push('/');
+    }
+  }, [profile, router]);
+
   const handleGameTap = useCallback(
     (gameId: string) => {
       playPop();
@@ -92,7 +101,7 @@ export default function PlayOverview() {
       <header className="sticky top-0 z-40 w-full">
         <div className="mx-auto max-w-2xl">
           <div className="flex h-14 items-center justify-between rounded-b-2xl bg-white px-4 shadow-kids sm:px-6">
-            <button type="button" onClick={() => router.push('/')} className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-kids-lightgray" aria-label="Back">
+            <button type="button" onClick={handleGoBack} className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-kids-lightgray" aria-label="Back">
               <ArrowLeft className="size-5 text-kids-text-secondary" />
             </button>
             <h1 className="font-nunito text-lg font-extrabold text-gradient-rainbow select-none">KidsVerse</h1>

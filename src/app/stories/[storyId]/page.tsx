@@ -90,7 +90,7 @@ export default function StoryViewer() {
   const { play: playPop } = useAudio({ frequency: 600, type: 'triangle' });
   const { play: playSuccess } = useAudio({ frequency: 1200, type: 'sine' });
 
-  const [profile, setProfile] = useState<{ name: string; age: number } | null>(null);
+  const [profile, setProfile] = useState<{ name: string; age: number; id?: string } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -163,8 +163,8 @@ export default function StoryViewer() {
             onClick={() => { playPop(); router.replace('/stories'); }}
             className="flex items-center gap-2 rounded-2xl px-2 py-1 hover:bg-kids-lightgray transition-colors"
           >
-            <ArrowLeft className="size-5 text-kids-text-secondary" />
-            <span className="hidden sm:inline text-sm font-nunito font-bold text-kids-text-secondary">Stories</span>
+            <ArrowLeft className="size-5 text-kids-dark" />
+            <span className="hidden sm:inline text-sm font-nunito font-bold text-kids-dark">Stories</span>
           </button>
           <h1 className="text-sm sm:text-base font-nunito font-extrabold text-kids-dark truncate max-w-[200px]">
             {story.title}
@@ -223,25 +223,31 @@ export default function StoryViewer() {
       {/* Navigation */}
       <nav className="sticky bottom-0 bg-white border-t border-kids-lightgray shadow-sm">
         <div className="mx-auto max-w-2xl flex items-center justify-between px-4 h-16">
-          <KidsButton
-            variant="ghost"
-            size="early"
+          <button
+            type="button"
             onClick={handlePrev}
             disabled={currentPage === 0}
-            leftIcon={<ChevronLeft className="size-5" />}
-            sound="pop"
+            className={cn(
+              'flex items-center gap-1.5 px-4 py-2 rounded-2xl font-nunito font-bold text-sm transition-all',
+              currentPage === 0
+                ? 'text-gray-300 cursor-not-allowed'
+                : 'text-kids-dark bg-kids-lightgray/60 hover:bg-kids-lightgray active:scale-95',
+            )}
           >
-            {isToddler ? '◀️' : 'Back'}
-          </KidsButton>
+            <ChevronLeft className="size-5" />
+            {isToddler ? '' : 'Back'}
+          </button>
 
           {/* Progress dots */}
-          <div className="flex gap-1.5">
+          <div className="flex gap-2">
             {story.pages.map((_, i) => (
               <div
                 key={i}
                 className={cn(
-                  'w-2 h-2 rounded-full transition-all',
-                  i === currentPage ? 'bg-kids-sky scale-125' : 'bg-kids-lightgray',
+                  'rounded-full transition-all',
+                  i === currentPage
+                    ? 'bg-kids-sky w-3 h-3'
+                    : 'bg-gray-300 w-2.5 h-2.5',
                 )}
               />
             ))}

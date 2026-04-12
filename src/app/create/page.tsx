@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
@@ -64,6 +64,15 @@ export default function CreativeStudio() {
 
   const activeProfile = profile || DEFAULT_PROFILE;
 
+  /* ---- Go back to kid profile ---- */
+  const handleGoBack = useCallback(() => {
+    if (profile?.id) {
+      router.push(`/kids/${profile.id}`);
+    } else {
+      router.push('/');
+    }
+  }, [profile, router]);
+
   if (!mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-kids-offwhite">
@@ -81,7 +90,7 @@ export default function CreativeStudio() {
       <header className="sticky top-0 z-40 w-full">
         <div className="mx-auto max-w-2xl">
           <div className="flex h-14 items-center justify-between rounded-b-2xl bg-white px-4 shadow-kids sm:px-6">
-            <button type="button" onClick={() => router.push('/')} className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-kids-lightgray" aria-label="Back">
+            <button type="button" onClick={handleGoBack} className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-kids-lightgray" aria-label="Back">
               <ArrowLeft className="size-5 text-kids-text-secondary" />
             </button>
             <h1 className="font-nunito text-lg font-extrabold text-gradient-rainbow select-none">KidsVerse</h1>

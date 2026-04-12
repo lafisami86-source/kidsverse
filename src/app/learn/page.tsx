@@ -195,6 +195,15 @@ export default function LearnOverview() {
     [playPop, router],
   );
 
+  /* ---- Go back to kid profile ---- */
+  const handleGoBack = useCallback(() => {
+    if (profile?.id) {
+      router.push(`/kids/${profile.id}`);
+    } else {
+      router.push('/');
+    }
+  }, [profile, router]);
+
   /* ---- Not mounted yet ---- */
   if (!mounted) {
     return (
@@ -227,9 +236,9 @@ export default function LearnOverview() {
           <div className="flex h-14 items-center justify-between rounded-b-2xl bg-white px-4 shadow-kids sm:px-6">
             <button
               type="button"
-              onClick={() => router.push('/')}
+              onClick={handleGoBack}
               className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-kids-lightgray focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-kids-sky"
-              aria-label="Back to home"
+              aria-label="Back to profile"
             >
               <ArrowLeft className="size-5 text-kids-text-secondary" aria-hidden="true" />
               <span className="hidden text-sm font-nunito font-bold text-kids-text-secondary sm:inline">
