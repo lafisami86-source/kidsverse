@@ -176,7 +176,7 @@ export default function StoryViewer() {
       </header>
 
       {/* Story content */}
-      <main className="flex-1 flex flex-col mx-auto max-w-2xl w-full px-4 py-6">
+      <main className="flex-1 flex flex-col mx-auto max-w-2xl w-full px-3 py-3 sm:px-4 sm:py-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}
@@ -184,12 +184,12 @@ export default function StoryViewer() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className={cn('flex-1 flex flex-col items-center rounded-3xl bg-gradient-to-br p-6 sm:p-10 shadow-kids-lg min-h-[400px] sm:min-h-[500px]', page.bg)}
+            className={cn('flex-1 flex flex-col items-center justify-center rounded-2xl sm:rounded-3xl bg-gradient-to-br px-5 py-5 sm:px-10 sm:py-8 shadow-kids-lg', page.bg)}
           >
             {/* Page emoji */}
             <motion.span
-              className="text-6xl sm:text-8xl mb-6"
-              animate={{ y: [0, -8, 0], scale: [1, 1.05, 1] }}
+              className="text-5xl sm:text-7xl mb-4 sm:mb-6"
+              animate={{ y: [0, -6, 0], scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
               {page.emoji}
@@ -197,8 +197,8 @@ export default function StoryViewer() {
 
             {/* Story text */}
             <p className={cn(
-              'font-nunito text-kids-dark text-center leading-relaxed max-w-lg',
-              isToddler ? 'text-lg sm:text-xl' : 'text-base sm:text-lg',
+              'font-nunito text-kids-dark text-center leading-relaxed max-w-md sm:max-w-lg',
+              isToddler ? 'text-lg sm:text-xl' : 'text-sm sm:text-base',
             )}>
               {page.text}
             </p>
@@ -207,10 +207,13 @@ export default function StoryViewer() {
             <motion.button
               type="button"
               onClick={handleReadAloud}
-              className="mt-6 px-4 py-2 rounded-2xl bg-white/80 shadow-kids font-nunito font-bold text-sm text-kids-sky flex items-center gap-2 hover:bg-white transition-colors"
+              className={cn(
+                'mt-4 sm:mt-6 px-4 py-2 rounded-2xl bg-white/80 shadow-kids font-nunito font-bold flex items-center gap-2 hover:bg-white transition-colors',
+                'text-kids-sky text-xs sm:text-sm',
+              )}
               whileTap={{ scale: 0.95 }}
             >
-              <Volume2 className="size-4" />
+              <Volume2 className="size-3.5 sm:size-4" />
               {isSpeaking ? 'Stop' : 'Read Aloud'}
             </motion.button>
           </motion.div>

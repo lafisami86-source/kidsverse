@@ -1,72 +1,221 @@
-// Pixel Art
-// TODO: Implement pixel art grid canvas with color palette
-
 'use client';
 
-import React from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Undo2, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const COLORS = [
+  '#FF6B6B', '#FF8E53', '#FFD93D', '#6BCB77', '#4D96FF',
+  '#9B59B6', '#FF69B4', '#1E293B', '#FFFFFF', '#95A5A6',
+  '#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#8E44AD',
+  '#1ABC9C', '#D35400', '#C0392B', '#ECF0F1', '#2C3E50',
+];
+
+const GRID_SIZES = [
+  { label: '8x8', size: 8 },
+  { label: '12x12', size: 12 },
+  { label: '16x16', size: 16 },
+];
 
 export default function PixelArt() {
   const router = useRouter();
+  const [gridSize, setGridSize] = useState(12);
+  const [color, setColor] = useState('#FF6B6B');
+  const [tool, setTool] = useState<'paint' | 'eraser'>('paint');
+  const [pixels, setPixels] = useState<string[][]>([]);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [history, setHistory] = useState<string[][][]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  const initGrid = useCallback((size: number, fill = '#FFFFFF') => {
+    const grid = Array.from({ length: size }, () => Array(size).fill(fill));
+    setPixels(grid);
+    setHistory([grid.map((row) => [...row])]);
+  }, []);
+
+  React.useEffect(() => {
+    setMounted(true);
+    initGrid(12);
+  }, []);
+
+  const saveState = useCallback((grid: string[][]) => {
+    setHistory((prev) => [...prev.slice(-30), grid.map((row) => [...row])]);
+  }, []);
+
+  const paintPixel = useCallback(
+    (row: number, col: number) => {
+      if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) return;
+      const newColor = tool === 'eraser' ? '#FFFFFF' : color;
+      setPixels((prev) => {
+        if (prev[row][col] === newColor) return prev;
+        const next = prev.map((r) => [...r]);
+        next[row][col] = newColor;
+        return next;
+      });
+    },
+    [color, tool, gridSize],
+  );
+
+  const handlePointerDown = useCallback(
+    (row: number, col: number) => {
+      setIsDrawing(true);
+      paintPixel(row, col);
+    },
+    [paintPixel],
+  );
+
+  const handlePointerEnter = useCallback(
+    (row: number, col: number) => {
+      if (isDrawing) paintPixel(row, col);
+    },
+    [isDrawing, paintPixel],
+  );
+
+  const handlePointerUp = useCallback(() => {
+    if (isDrawing) {
+      setIsDrawing(false);
+      setPixels((current) => {
+        saveState(current);
+        return current;
+      });
+    }
+  }, [isDrawing, saveState]);
+
+  const undo = useCallback(() => {
+    if (history.length <= 1) return;
+    const prev = history[history.length - 2];
+    setPixels(prev.map((row) => [...row]));
+    setHistory((h) => h.slice(0, -1));
+  }, [history]);
+
+  const clearGrid = useCallback(() => {
+    initGrid(gridSize);
+  }, [gridSize, initGrid]);
+
+  const changeGridSize = useCallback(
+    (size: number) => {
+      setGridSize(size);
+      initGrid(size);
+    },
+    [initGrid],
+  );
+
+  if (!mounted || pixels.length === 0) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-kids-offwhite">
+        <motion.div className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🟦</motion.div>
+      </div>
+    );
+  }
+
+  const cellSize = Math.min(Math.floor(350 / gridSize), 32);
 
   return (
-    <div className="min-h-screen bg-kids-offwhite">
-      {/* Top bar */}
-      <header className="sticky top-0 z-40 w-full">
-        <div className="mx-auto max-w-2xl">
-          <div className="flex h-14 items-center justify-between rounded-b-2xl bg-white px-4 shadow-kids sm:px-6">
-            <button type="button" onClick={() => router.push('/create')} className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-kids-lightgray" aria-label="Back to Creative Studio">
-              <ArrowLeft className="size-5 text-kids-text-secondary" />
+    <div className="flex h-screen flex-col bg-kids-offwhite" onPointerUp={handlePointerUp} onPointerLeave={handlePointerUp}>
+      {/* Header */}
+      <header className="sticky top-0 z-40 w-full bg-white shadow-kids">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 h-14">
+          <button type="button" onClick={() => router.push('/create')} className="flex items-center gap-2 rounded-2xl px-2 py-1 hover:bg-kids-lightgray transition-colors" aria-label="Back">
+            <ArrowLeft className="size-5 text-kids-text-secondary" />
+          </button>
+          <h1 className="font-nunito text-lg font-extrabold text-kids-dark">Pixel Art</h1>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={undo} disabled={history.length <= 1} className="flex h-9 w-9 items-center justify-center rounded-xl bg-kids-lightgray/60 transition-all hover:bg-kids-lightgray active:scale-90 disabled:opacity-30" aria-label="Undo">
+              <Undo2 className="size-4 text-kids-dark" />
             </button>
-            <h1 className="font-nunito text-lg font-extrabold text-gradient-rainbow select-none">KidsVerse</h1>
-            <span className="text-2xl">🟦</span>
+            <button type="button" onClick={clearGrid} className="flex h-9 w-9 items-center justify-center rounded-xl bg-kids-coral/10 transition-all hover:bg-kids-coral/20 active:scale-90" aria-label="Clear">
+              <Trash2 className="size-4 text-kids-coral" />
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-4">
-        <motion.span
-          className="text-7xl sm:text-8xl"
-          initial={{ scale: 0, rotate: -20 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+      {/* Grid size selector */}
+      <div className="flex items-center justify-center gap-2 px-4 py-2 bg-white border-b border-kids-lightgray/50">
+        {GRID_SIZES.map((g) => (
+          <button
+            key={g.label}
+            type="button"
+            onClick={() => changeGridSize(g.size)}
+            className={cn(
+              'px-3 py-1 rounded-lg font-nunito font-bold text-xs transition-all active:scale-90',
+              gridSize === g.size ? 'bg-kids-sky text-white' : 'bg-kids-lightgray/60 text-kids-text-secondary',
+            )}
+          >
+            {g.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Pixel Grid */}
+      <div className="flex-1 flex items-center justify-center px-4 py-3">
+        <div
+          className="grid bg-gray-200 rounded-lg overflow-hidden shadow-kids-lg"
+          style={{
+            gridTemplateColumns: `repeat(${gridSize}, ${cellSize}px)`,
+            gridTemplateRows: `repeat(${gridSize}, ${cellSize}px)`,
+            gap: '1px',
+          }}
         >
-          🟦
-        </motion.span>
-        <motion.h1
-          className="text-3xl font-nunito font-extrabold text-kids-dark sm:text-4xl"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          Pixel Art
-        </motion.h1>
-        <motion.p
-          className="text-center text-kids-text-secondary"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          Make pixel art masterpieces!
-          <br />
-          Coming soon...
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
+          {pixels.map((row, ri) =>
+            row.map((cellColor, ci) => (
+              <div
+                key={`${ri}-${ci}`}
+                className="cursor-pointer transition-none touch-none"
+                style={{ backgroundColor: cellColor, width: cellSize, height: cellSize }}
+                onPointerDown={(e) => { e.preventDefault(); handlePointerDown(ri, ci); }}
+                onPointerEnter={() => handlePointerEnter(ri, ci)}
+              />
+            )),
+          )}
+        </div>
+      </div>
+
+      {/* Tools & Colors */}
+      <div className="sticky bottom-0 bg-white border-t border-kids-lightgray shadow-sm pb-[env(safe-area-inset-bottom)]">
+        {/* Tool selector */}
+        <div className="flex items-center justify-center gap-3 px-4 pt-3 pb-2">
           <button
             type="button"
-            onClick={() => router.push('/create')}
-            className="rounded-2xl bg-white px-6 py-3 font-nunito font-bold text-kids-dark shadow-kids transition-all hover:scale-105 hover:shadow-kids-hover active:scale-95"
+            onClick={() => setTool('paint')}
+            className={cn(
+              'px-4 py-1.5 rounded-xl font-nunito font-bold text-sm transition-all',
+              tool === 'paint' ? 'bg-kids-sky text-white shadow-kids' : 'bg-kids-lightgray/60 text-kids-text-secondary',
+            )}
           >
-            Back to Studio
+            ✏️ Paint
           </button>
-        </motion.div>
-      </main>
+          <button
+            type="button"
+            onClick={() => setTool('eraser')}
+            className={cn(
+              'px-4 py-1.5 rounded-xl font-nunito font-bold text-sm transition-all',
+              tool === 'eraser' ? 'bg-kids-sky text-white shadow-kids' : 'bg-kids-lightgray/60 text-kids-text-secondary',
+            )}
+          >
+            ⬜ Eraser
+          </button>
+        </div>
+
+        {/* Color palette */}
+        <div className="flex items-center justify-center gap-1.5 px-3 pb-3 overflow-x-auto flex-wrap max-h-20">
+          {COLORS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => { setColor(c); setTool('paint'); }}
+              className={cn(
+                'h-7 w-7 flex-shrink-0 rounded-lg border-2 transition-all active:scale-90',
+                color === c && tool === 'paint' ? 'border-kids-dark scale-110 shadow-md' : 'border-transparent',
+              )}
+              style={{ backgroundColor: c }}
+              aria-label={`Color ${c}`}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

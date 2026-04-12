@@ -330,7 +330,7 @@ export default function StoriesLibrary() {
 
           {/* Stories Grid */}
           <motion.section variants={itemVariants} aria-label="Story list">
-            <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2">
+            <div className="grid gap-3 sm:gap-5 grid-cols-2 sm:grid-cols-2">
               {filteredStories.map((story, idx) => {
                 const isFav = favorites.has(story.id);
                 return (
@@ -348,8 +348,8 @@ export default function StoriesLibrary() {
                     <KidsCard
                       variant="interactive"
                       color={story.color}
-                      padding="lg"
-                      className="relative flex flex-col gap-3 cursor-pointer h-full"
+                      padding="md"
+                      className="relative flex flex-col gap-2 cursor-pointer h-full"
                       onClick={() => handleStoryTap(story.id)}
                     >
                       {/* Story icon + favorite button */}
@@ -362,7 +362,7 @@ export default function StoriesLibrary() {
                             ease: 'easeInOut',
                           }}
                         >
-                          <span className="text-4xl sm:text-5xl">{story.icon}</span>
+                          <span className="text-3xl sm:text-5xl">{story.icon}</span>
                         </motion.div>
                         <button
                           type="button"
@@ -380,26 +380,26 @@ export default function StoriesLibrary() {
                       </div>
 
                       {/* Title */}
-                      <h2 className="text-base sm:text-lg font-nunito font-extrabold text-kids-dark leading-tight">
+                      <h2 className="text-xs sm:text-lg font-nunito font-extrabold text-kids-dark leading-tight line-clamp-2">
                         {story.title}
                       </h2>
 
-                      {/* Description */}
-                      <p className="text-xs sm:text-sm text-kids-text-secondary leading-relaxed line-clamp-2">
+                      {/* Description - hidden on small mobile for cleaner look */}
+                      <p className="hidden sm:block text-sm text-kids-text-secondary leading-relaxed line-clamp-2">
                         {story.description}
                       </p>
 
                       {/* Meta info */}
-                      <div className="flex items-center gap-3 mt-auto pt-1">
-                        <span className="flex items-center gap-1 text-xs text-kids-text-muted font-nunito">
-                          <Clock className="size-3" aria-hidden="true" />
+                      <div className="flex items-center gap-2 mt-auto pt-1">
+                        <span className="flex items-center gap-0.5 text-[10px] sm:text-xs text-kids-text-muted font-nunito">
+                          <Clock className="size-2.5 sm:size-3" aria-hidden="true" />
                           {story.readTime}
                         </span>
-                        <span className="flex items-center gap-0.5 text-xs text-kids-sun font-nunito">
+                        <span className="flex items-center gap-0.5 text-[10px] sm:text-xs text-kids-sun font-nunito">
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star
                               key={i}
-                              className={cn('size-3', i < story.rating ? 'fill-kids-sun text-kids-sun' : 'text-kids-lightgray')}
+                              className={cn('size-2.5 sm:size-3', i < story.rating ? 'fill-kids-sun text-kids-sun' : 'text-kids-lightgray')}
                               aria-hidden="true"
                             />
                           ))}
