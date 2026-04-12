@@ -28,3 +28,25 @@ Stage Summary:
 - Learn/Stories/Videos show content even without profile selection
 - Auth works with in-memory fallback when SQLite is unavailable
 - Ready to push to GitHub for Vercel redeployment
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix back arrows and story display issues in KidsVerse
+
+Work Log:
+- Analyzed 3 screenshots to identify issues (learn page whitespace, story viewer invisible buttons/dots)
+- Fixed back arrow on Learn page (/learn/page.tsx) to navigate to kid profile (/kids/{id}) instead of home (/)
+- Fixed back arrow on Stories page (/stories/page.tsx) to navigate to kid profile
+- Fixed back arrow on Create page (/create/page.tsx) to navigate to kid profile  
+- Fixed back arrow on Play page (/play/page.tsx) to navigate to kid profile
+- Fixed story viewer (/stories/[storyId]/page.tsx): replaced invisible ghost Back button with visible styled button
+- Fixed story viewer: progress dots enlarged (w-3 h-3 active, w-2.5 h-2.5 inactive) and inactive color changed from bg-kids-lightgray to bg-gray-300
+- Fixed story viewer: top bar back arrow changed from text-kids-text-secondary to text-kids-dark for better contrast
+- Verified Creative Studio activities (Free Draw, Coloring, Stamp Art, Pixel Art) are already fully implemented
+- Pushed commit 12a0fe6 to GitHub
+
+Stage Summary:
+- All back arrows on standalone pages now return to kid profile when profile exists
+- Story viewer bottom navigation is now fully visible and usable
+- Creative Studio is fully functional (no "Coming Soon" placeholders)
