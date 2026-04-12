@@ -474,6 +474,32 @@ export default function LearnOverview() {
               })}
             </div>
           </motion.section>
+
+          {/* ================================================================ */}
+          {/*  MOTIVATIONAL TIP                                                 */}
+          {/* ================================================================ */}
+          <motion.section
+            variants={itemVariants}
+            className="text-center"
+            aria-label="Motivational tip"
+          >
+            <KidsCard variant="featured" padding="lg" className="relative overflow-hidden">
+              <span className="pointer-events-none absolute -right-2 -top-2 text-4xl opacity-50" aria-hidden="true">💡</span>
+              <motion.div
+                animate={{ y: [0, -4, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                className="text-4xl mb-3"
+              >
+                🌟
+              </motion.div>
+              <h3 className="font-nunito font-extrabold text-kids-dark text-base sm:text-lg mb-2">
+                Did You Know?
+              </h3>
+              <p className="text-sm text-kids-text-secondary leading-relaxed max-w-xs mx-auto">
+                Learning just 15 minutes a day can make you smarter and more creative. Keep going, {activeProfile.name}!
+              </p>
+            </KidsCard>
+          </motion.section>
         </motion.div>
       </main>
     </div>

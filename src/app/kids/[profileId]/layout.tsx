@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScreenTime } from '@/hooks/use-screen-time';
+import { useTheme } from '@/hooks/use-theme';
 import { AudioToggle } from '@/components/kids/audio-button';
 import { KidsBadge } from '@/components/kids/kids-badge';
 import { KidsModal } from '@/components/kids/kids-modal';
@@ -147,6 +148,9 @@ export default function KidsLayout({ children }: { children: React.ReactNode }) 
     return () => { cancelled = true; };
   }, [profileId]);
 
+  /* ---- theme ---- */
+  const { theme, toggleTheme, isDark } = useTheme();
+
   /* ---- screen time ---- */
   const st = useScreenTime({
     profileId: profileId || 'unknown',
@@ -230,7 +234,7 @@ export default function KidsLayout({ children }: { children: React.ReactNode }) 
   /* ---- loading state ---- */
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-kids-offwhite">
+      <div className="flex min-h-screen items-center justify-center bg-kids-offwhite dark:bg-gray-900">
         <motion.div
           className="flex flex-col items-center gap-4"
           initial={{ opacity: 0, scale: 0.8 }}
@@ -244,7 +248,7 @@ export default function KidsLayout({ children }: { children: React.ReactNode }) 
           >
             \uD83C\uDF1F
           </motion.span>
-          <p className="font-nunito text-lg font-bold text-kids-dark">Loading...</p>
+          <p className="font-nunito text-lg font-bold text-kids-dark dark:text-white">Loading...</p>
         </motion.div>
       </div>
     );
@@ -252,13 +256,13 @@ export default function KidsLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <ChildContext.Provider value={{ profile, loading }}>
-      <div className="min-h-screen bg-kids-offwhite">
+      <div className="min-h-screen bg-kids-offwhite dark:bg-gray-900">
         {/* ================================================================ */}
         {/*  TOP BAR                                                         */}
         {/* ================================================================ */}
         <header className="sticky top-0 z-40 w-full">
           <div className="mx-auto max-w-4xl">
-            <div className="flex h-16 items-center justify-between rounded-b-2xl bg-white px-4 shadow-kids sm:px-6">
+            <div className="flex h-16 items-center justify-between rounded-b-2xl bg-white px-4 shadow-kids sm:px-6 dark:bg-gray-800">
               {/* Left: Avatar + Name */}
               <button
                 type="button"
@@ -275,10 +279,10 @@ export default function KidsLayout({ children }: { children: React.ReactNode }) 
                 >
                   {profile?.avatar ?? '\uD83D\uDC3E'}
                 </motion.span>
-                <span className="hidden max-w-[100px] truncate text-sm font-nunito font-bold text-kids-dark sm:inline-block sm:max-w-[140px]">
+                <span className="hidden max-w-[100px] truncate text-sm font-nunito font-bold text-kids-dark dark:text-white sm:inline-block sm:max-w-[140px]">
                   {profile?.name ?? 'Friend'}
                 </span>
-                <ArrowLeft className="size-4 text-kids-text-secondary sm:hidden" aria-hidden="true" />
+                <ArrowLeft className="size-4 text-kids-text-secondary dark:text-gray-400 sm:hidden" aria-hidden="true" />
               </button>
 
               {/* Center: Logo */}
@@ -316,7 +320,7 @@ export default function KidsLayout({ children }: { children: React.ReactNode }) 
           aria-label="Main navigation"
         >
           <div className="mx-auto max-w-4xl">
-            <div className="flex h-[70px] items-center justify-around rounded-t-2xl bg-white px-2 shadow-kids sm:px-4">
+            <div className="flex h-[70px] items-center justify-around rounded-t-2xl bg-white px-2 shadow-kids sm:px-4 dark:bg-gray-800">
               {navTabs.map((tab, idx) => {
                 const isActive = idx === activeTabIdx;
                 return (
@@ -375,6 +379,28 @@ export default function KidsLayout({ children }: { children: React.ReactNode }) 
                   </button>
                 );
               })}
+
+              {/* Theme toggle button */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex min-h-[52px] min-w-[48px] flex-col items-center justify-center gap-0.5 rounded-2xl px-1 transition-colors hover:bg-kids-lightgray/60 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-kids-sky sm:min-w-[56px] sm:gap-1"
+                aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                <motion.span
+                  className="text-2xl sm:text-3xl"
+                  key={theme}
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  aria-hidden="true"
+                >
+                  {isDark ? '\u2600\uFE0F' : '\uD83C\uDF19'}
+                </motion.span>
+                <span className="text-[10px] font-nunito font-bold leading-none text-kids-text-secondary sm:text-xs">
+                  {isDark ? 'Light' : 'Dark'}
+                </span>
+              </button>
             </div>
           </div>
         </nav>

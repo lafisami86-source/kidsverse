@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Undo2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Undo2, Trash2, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const COLORS = [
@@ -102,6 +102,25 @@ export default function PixelArt() {
     [initGrid],
   );
 
+  const savePixelArt = useCallback(() => {
+    const canvas = document.createElement('canvas');
+    const scale = 20;
+    canvas.width = gridSize * scale;
+    canvas.height = gridSize * scale;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    pixels.forEach((row, ri) =>
+      row.forEach((color, ci) => {
+        ctx.fillStyle = color;
+        ctx.fillRect(ci * scale, ri * scale, scale, scale);
+      }),
+    );
+    const link = document.createElement('a');
+    link.download = `kidsverse-pixel-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }, [pixels, gridSize]);
+
   if (!mounted || pixels.length === 0) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-kids-offwhite">
@@ -122,6 +141,9 @@ export default function PixelArt() {
           </button>
           <h1 className="font-nunito text-lg font-extrabold text-kids-dark">Pixel Art</h1>
           <div className="flex items-center gap-2">
+            <button type="button" onClick={savePixelArt} className="flex h-9 w-9 items-center justify-center rounded-xl bg-kids-grass/10 transition-all hover:bg-kids-grass/20 active:scale-90" aria-label="Save pixel art">
+              <Download className="size-4 text-kids-grass" />
+            </button>
             <button type="button" onClick={undo} disabled={history.length <= 1} className="flex h-9 w-9 items-center justify-center rounded-xl bg-kids-lightgray/60 transition-all hover:bg-kids-lightgray active:scale-90 disabled:opacity-30" aria-label="Undo">
               <Undo2 className="size-4 text-kids-dark" />
             </button>

@@ -17,6 +17,8 @@ export interface SectionCardProps {
   showText?: boolean;
   tapSize?: 'toddler' | 'early' | 'kid';
   delay?: number;
+  /** Optional callback fired when the card is interacted with (before navigation) */
+  onInteract?: (section: string) => void;
 }
 
 const tapSizeClasses = {
@@ -26,6 +28,7 @@ const tapSizeClasses = {
 };
 
 export function SectionCard({
+  section,
   icon,
   label,
   description,
@@ -34,11 +37,13 @@ export function SectionCard({
   showText = true,
   tapSize = 'early',
   delay = 0,
+  onInteract,
 }: SectionCardProps) {
   const router = useRouter();
   const { play } = useAudio({ frequency: 600, type: 'triangle' });
 
   const handleClick = () => {
+    onInteract?.(section);
     play();
     router.push(href);
   };

@@ -48,6 +48,104 @@ const STORIES_DB: Record<string, {
       { text: 'If you look at the moon, you can still see the rabbit with her rice cake mortar! 🍙', emoji: '🌙', bg: 'from-indigo-100 to-blue-100' },
     ],
   },
+  'alphabet-forest': {
+    title: 'Alphabet Forest Adventure',
+    icon: '🌳',
+    pages: [
+      { text: 'Welcome to the Alphabet Forest! Every tree here grows a different letter of the alphabet!', emoji: '🌳', bg: 'from-green-100 to-emerald-100' },
+      { text: 'Little Tim walked past the A tree. "A is for Apple!" he said, picking a shiny red apple.', emoji: '🍎', bg: 'from-red-100 to-orange-100' },
+      { text: 'Next was the B tree. A beautiful blue bird was building a nest. "B is for Bird!"', emoji: '🐦', bg: 'from-sky-100 to-blue-100' },
+      { text: 'He found the C tree with a cute orange cat sleeping on a branch. "C is for Cat!"', emoji: '🐱', bg: 'from-amber-100 to-yellow-100' },
+      { text: 'The D tree had a dog playing with a big brown duck. "D is for Dog and Duck!" Tim laughed.', emoji: '🐶', bg: 'from-green-100 to-emerald-100' },
+      { text: 'At the E tree, an elephant sprayed water everywhere! Tim danced in the rainbow that appeared.', emoji: '🐘', bg: 'from-violet-100 to-purple-100' },
+      { text: 'Tim kept walking through F, G, H... all the way to Z! He learned every single letter!', emoji: '📖', bg: 'from-amber-100 to-yellow-100' },
+      { text: '"I learned the whole alphabet!" Tim cheered. The forest animals clapped and sang with joy! 🎉', emoji: '🎉', bg: 'from-rose-100 to-pink-100' },
+    ],
+  },
+  'brave-little-star': {
+    title: 'The Brave Little Star',
+    icon: '⭐',
+    pages: [
+      { text: 'High up in the night sky, a tiny star named Twinkle felt very small next to the big constellations.', emoji: '✨', bg: 'from-indigo-100 to-blue-100' },
+      { text: '"I want to be part of a constellation too!" said Twinkle. The older stars laughed kindly.', emoji: '😢', bg: 'from-violet-100 to-purple-100' },
+      { text: 'One night, a little girl on Earth was scared of the dark. She couldn\'t sleep at all.', emoji: '👧', bg: 'from-amber-100 to-yellow-100' },
+      { text: 'Twinkle shone as brightly as she could, sending a warm golden glow through the girl\'s window.', emoji: '🌟', bg: 'from-yellow-100 to-amber-100' },
+      { text: 'The girl saw Twinkle\'s light and smiled. "Look, a little star just for me!" She felt safe now.', emoji: '❤️', bg: 'from-rose-100 to-pink-100' },
+      { text: 'Every night after that, Twinkle shone for the girl. Soon, other stars joined to form a pattern.', emoji: '⭐', bg: 'from-indigo-100 to-blue-100' },
+      { text: 'The big constellations gasped — Twinkle had created the most beautiful new constellation of all!', emoji: '🤩', bg: 'from-sky-100 to-blue-100' },
+      { text: '"You don\'t need to be big to be important," they said. Twinkle twinkled the brightest that night! 🌟', emoji: '🌟', bg: 'from-violet-100 to-purple-100' },
+    ],
+  },
+  'giggly-giraffe': {
+    title: 'The Giggly Giraffe',
+    icon: '🦒',
+    pages: [
+      { text: 'Gerry the Giraffe had a very special talent — he could not stop laughing! Everything was funny to him.', emoji: '🦒', bg: 'from-amber-100 to-yellow-100' },
+      { text: 'When the wind blew, Gerry giggled. When a butterfly landed on his nose, he laughed out loud!', emoji: '🦋', bg: 'from-green-100 to-emerald-100' },
+      { text: 'The other animals were confused. "Why do you laugh all the time?" asked Zara the Zebra.', emoji: '🦓', bg: 'from-rose-100 to-pink-100' },
+      { text: '"Because the world is wonderful!" said Gerry, bending his long neck to smile at Zara.', emoji: '😊', bg: 'from-sky-100 to-blue-100' },
+      { text: 'One day, everyone was grumpy because it rained and they couldn\'t play outside.', emoji: '🌧️', bg: 'from-slate-100 to-gray-200' },
+      { text: 'Gerry started to giggle. Then he splashed in a puddle and did a silly dance in the rain!', emoji: '💃', bg: 'from-blue-100 to-indigo-100' },
+      { text: 'The other animals watched... and started to smile. Then they laughed! Soon everyone was dancing!', emoji: '🎉', bg: 'from-green-100 to-emerald-100' },
+      { text: '"See?" said Gerry. "Even rainy days are fun when you laugh!" And everyone agreed! 😄', emoji: '🌈', bg: 'from-amber-100 to-yellow-100' },
+    ],
+  },
+  'ocean-friends': {
+    title: 'Friends of the Ocean',
+    icon: '🐬',
+    pages: [
+      { text: 'Deep in the blue ocean, a playful dolphin named Fin was looking for a new friend to explore with.', emoji: '🐬', bg: 'from-sky-100 to-blue-100' },
+      { text: 'He found Shelly the Seahorse hiding in some coral. "Want to explore?" Fin asked with a smile.', emoji: '🐡', bg: 'from-green-100 to-emerald-100' },
+      { text: 'They swam past colorful fish, waving seaweed, and shiny bubbles floating up to the surface.', emoji: '🐠', bg: 'from-teal-100 to-cyan-100' },
+      { text: '"Look!" said Shelly. A big sea turtle was stuck in some plastic. "We have to help!"', emoji: '🐢', bg: 'from-amber-100 to-yellow-100' },
+      { text: 'Fin used his nose to push the plastic away while Shelly wiggled through the gaps to untangle it.', emoji: '💪', bg: 'from-sky-100 to-blue-100' },
+      { text: 'The turtle was free! "Thank you, little friends!" she said. "My name is Tessa. Let me take you somewhere special."', emoji: '🐢', bg: 'from-green-100 to-emerald-100' },
+      { text: 'Tessa led them to a hidden cave filled with glowing jellyfish — it was the most magical place ever!', emoji: '🪼', bg: 'from-violet-100 to-purple-100' },
+      { text: 'From that day on, Fin, Shelly, and Tessa explored the ocean together — the best of friends! 🌊', emoji: '💙', bg: 'from-sky-100 to-blue-100' },
+    ],
+  },
+  'counting-caterpillar': {
+    title: 'The Counting Caterpillar',
+    icon: '🐛',
+    pages: [
+      { text: 'Cody the Caterpillar was very hungry! He wanted to eat 10 things, but first he had to count them.', emoji: '🐛', bg: 'from-green-100 to-emerald-100' },
+      { text: '"1 apple!" Cody counted, taking a big bite. "Mmm, that\'s delicious!"', emoji: '🍎', bg: 'from-red-100 to-orange-100' },
+      { text: '"2 pears, 3 bananas!" He arranged the fruit in a nice neat row on his leaf.', emoji: '🍌', bg: 'from-yellow-100 to-amber-100' },
+      { text: '"4 strawberries, 5 blueberries!" Cody was getting really full now. His tummy was round!', emoji: '🍓', bg: 'from-rose-100 to-pink-100' },
+      { text: '"6 grapes, 7 cherries!" His friend Bella Butterfly helped him carry more fruit.', emoji: '🍇', bg: 'from-violet-100 to-purple-100' },
+      { text: '"8 cookies, 9 marshmallows!" Wait — those weren\'t fruit! Cody giggled and ate them anyway.', emoji: '🍪', bg: 'from-amber-100 to-yellow-100' },
+      { text: '"And 10... a big juicy watermelon!" Cody was so full he rolled right off the leaf! "1, 2, 3... SPLASH!"', emoji: '🍉', bg: 'from-green-100 to-emerald-100' },
+      { text: 'Cody ate 10 things, counted to 10, and soon turned into a beautiful butterfly! What a day! 🦋', emoji: '🦋', bg: 'from-sky-100 to-blue-100' },
+    ],
+  },
+  'dragon-dreams': {
+    title: 'Dragon Dreams',
+    icon: '🐉',
+    pages: [
+      { text: 'Draco the Dragon was different from other dragons. Instead of breathing fire, he breathed colorful bubbles!', emoji: '🐉', bg: 'from-violet-100 to-purple-100' },
+      { text: 'The other dragons laughed. "Dragons should breathe fire, not bubbles!" they said.', emoji: '😢', bg: 'from-rose-100 to-pink-100' },
+      { text: 'Draco felt sad and flew to a quiet cave. "Why can\'t I be like everyone else?" he wondered.', emoji: '🫧', bg: 'from-slate-100 to-gray-200' },
+      { text: 'That night, a lost baby bird was crying in the forest. All the fire-breathing dragons scared it away!', emoji: '🐦', bg: 'from-amber-100 to-yellow-100' },
+      { text: 'Draco gently blew soft, glowing bubbles. They floated around the baby bird like a warm blanket of light.', emoji: '✨', bg: 'from-sky-100 to-blue-100' },
+      { text: 'The baby bird stopped crying and hopped onto Draco\'s nose. "Thank you, kind dragon!" it chirped.', emoji: '❤️', bg: 'from-rose-100 to-pink-100' },
+      { text: 'The other dragons saw this and were amazed. "Your bubbles are magical, Draco! We\'re sorry we laughed."', emoji: '🤩', bg: 'from-green-100 to-emerald-100' },
+      { text: 'Draco smiled and blew a rainbow of bubbles. "Being different is my superpower!" 🌈', emoji: '🌈', bg: 'from-amber-100 to-yellow-100' },
+    ],
+  },
+  'sleepy-owl': {
+    title: 'The Sleepy Owl',
+    icon: '🦉',
+    pages: [
+      { text: 'Oliver the Owl was the sleepiest owl in the whole forest. When other owls were awake at night, Oliver was yawning.', emoji: '🦉', bg: 'from-indigo-100 to-blue-100' },
+      { text: '"I want to see the sunrise!" Oliver said. "That\'s when the sky turns pink and gold and the world wakes up!"', emoji: '🌅', bg: 'from-amber-100 to-yellow-100' },
+      { text: 'But every time he tried to stay awake, his eyes would get heavy... heavier... and he\'d fall asleep!', emoji: '😴', bg: 'from-violet-100 to-purple-100' },
+      { text: 'His friend Luna the Firefly offered to help. "I\'ll flash my light whenever you start to nod off!"', emoji: '🪲', bg: 'from-yellow-100 to-amber-100' },
+      { text: 'Oliver tried again. Flash! "I\'m awake!" he said. Flash flash! "Still awake!" This was hard work!', emoji: '💡', bg: 'from-green-100 to-emerald-100' },
+      { text: 'The sky started getting lighter. "It\'s almost time!" whispered Luna. Oliver\'s eyes were so very heavy...', emoji: '👁️', bg: 'from-sky-100 to-blue-100' },
+      { text: 'Then... the first ray of sunlight appeared! Oliver opened his eyes wide. "It\'s... BEAUTIFUL!" he gasped.', emoji: '☀️', bg: 'from-orange-100 to-amber-100' },
+      { text: 'The golden sunrise was the most wonderful thing Oliver had ever seen. "Worth every sleepy moment!" he smiled. 🌅', emoji: '🦉', bg: 'from-rose-100 to-pink-100' },
+    ],
+  },
 };
 
 // Default story for any story ID not in DB
@@ -95,6 +193,7 @@ export default function StoryViewer() {
   const [currentPage, setCurrentPage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const storyId = typeof window !== 'undefined'
     ? window.location.pathname.split('/stories/')[1] || 'lion-mouse'
@@ -126,6 +225,10 @@ export default function StoryViewer() {
     if (currentPage < totalPages - 1) {
       playPop();
       setCurrentPage((p) => p + 1);
+      if (currentPage === totalPages - 2) {
+        setShowCelebration(true);
+        setTimeout(() => setShowCelebration(false), 4000);
+      }
     } else {
       playSuccess();
       router.replace('/stories');
@@ -264,6 +367,52 @@ export default function StoryViewer() {
           </KidsButton>
         </div>
       </nav>
+
+      {/* Celebration overlay when reaching last page */}
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+          >
+            {/* Confetti particles */}
+            {['🎉', '⭐', '🌟', '💫', '🎊', '✨', '🏆', '❤️'].map((emoji, i) => (
+              <motion.span
+                key={i}
+                className="absolute text-3xl sm:text-4xl"
+                initial={{ y: -100, x: (i - 4) * 60, opacity: 1, rotate: 0 }}
+                animate={{ y: 600, opacity: 0, rotate: 360 }}
+                transition={{ duration: 2.5, delay: i * 0.15, ease: 'easeIn' }}
+              >
+                {emoji}
+              </motion.span>
+            ))}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.5 }}
+              className="bg-white rounded-3xl px-8 py-6 shadow-kids-lg text-center"
+            >
+              <motion.span
+                className="text-5xl sm:text-6xl block mb-3"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 1, repeat: 3 }}
+              >
+                📖
+              </motion.span>
+              <p className="font-nunito font-extrabold text-kids-dark text-lg sm:text-xl">
+                {isToddler ? 'Yay! The End!' : 'Story Complete!'}
+              </p>
+              <p className="text-sm text-kids-text-secondary mt-1">
+                {isToddler ? '' : 'Great job reading!'}
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,20 +1,68 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Volume2, ChevronRight, PartyPopper, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Volume2, Eraser, RotateCcw, PartyPopper } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { KidsCard } from '@/components/kids/kids-card';
 import { KidsButton } from '@/components/kids/kids-button';
 import { KidsBadge } from '@/components/kids/kids-badge';
+import { KidsProgressBar } from '@/components/kids/kids-progress-bar';
 import { KidsModal } from '@/components/kids/kids-modal';
-import { StarBadge } from '@/components/kids/star-badge';
 import { useAudio } from '@/hooks/use-audio';
 import { useAgeGroup } from '@/hooks/use-age-group';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+interface LetterData {
+  letter: string;
+  word: string;
+  emoji: string;
+  color: string;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Constants                                                          */
+/* ------------------------------------------------------------------ */
+
+const STORAGE_KEY = 'kv-active-profile';
+const PROGRESS_KEY = 'kv-learn-progress';
+const ALPHABET_KEY = 'kv-alphabet-progress';
+
+const LETTERS: LetterData[] = [
+  { letter: 'A', word: 'Apple',     emoji: '🍎', color: 'text-kids-coral' },
+  { letter: 'B', word: 'Bee',       emoji: '🐝', color: 'text-kids-sun' },
+  { letter: 'C', word: 'Cat',       emoji: '🐱', color: 'text-kids-grass' },
+  { letter: 'D', word: 'Dog',       emoji: '🐶', color: 'text-kids-sun' },
+  { letter: 'E', word: 'Elephant',  emoji: '🐘', color: 'text-kids-text-secondary' },
+  { letter: 'F', word: 'Fox',       emoji: '🦊', color: 'text-kids-coral' },
+  { letter: 'G', word: 'Grapes',    emoji: '🍇', color: 'text-kids-grass' },
+  { letter: 'H', word: 'House',     emoji: '🏠', color: 'text-kids-sun' },
+  { letter: 'I', word: 'Ice Cream', emoji: '🍦', color: 'text-kids-pink' },
+  { letter: 'J', word: 'Juggler',   emoji: '🤹', color: 'text-kids-sun' },
+  { letter: 'K', word: 'Kite',      emoji: '🪁', color: 'text-kids-lavender' },
+  { letter: 'L', word: 'Lion',      emoji: '🦁', color: 'text-kids-sun' },
+  { letter: 'M', word: 'Moon',      emoji: '🌙', color: 'text-kids-lavender' },
+  { letter: 'N', word: 'Nest',      emoji: '🎈', color: 'text-kids-sun' },
+  { letter: 'O', word: 'Octopus',   emoji: '🐙', color: 'text-kids-coral' },
+  { letter: 'P', word: 'Panda',     emoji: '🐼', color: 'text-kids-text-secondary' },
+  { letter: 'Q', word: 'Queen',     emoji: '👑', color: 'text-kids-pink' },
+  { letter: 'R', word: 'Rainbow',   emoji: '🌈', color: 'text-kids-sky' },
+  { letter: 'S', word: 'Star',      emoji: '⭐', color: 'text-kids-sun' },
+  { letter: 'T', word: 'Turtle',    emoji: '🐢', color: 'text-kids-grass' },
+  { letter: 'U', word: 'Umbrella',  emoji: '☂️', color: 'text-kids-sky' },
+  { letter: 'V', word: 'Violin',    emoji: '🎻', color: 'text-kids-coral' },
+  { letter: 'W', word: 'Whale',     emoji: '🐋', color: 'text-kids-sky' },
+  { letter: 'X', word: 'Xylophone', emoji: '✖️', color: 'text-kids-lavender' },
+  { letter: 'Y', word: 'Yo-yo',     emoji: '🪀', color: 'text-kids-coral' },
+  { letter: 'Z', word: 'Zebra',     emoji: '🦓', color: 'text-kids-text-secondary' },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
 interface StoredProfile {
@@ -25,55 +73,6 @@ interface StoredProfile {
   ageGroup: string;
   screenTimeLimit: number;
 }
-
-interface LetterData {
-  letter: string;
-  word: string;
-  emoji: string;
-  color: string;
-}
-
-type AppMode = 'explore' | 'lesson' | 'quiz' | 'celebration';
-
-/* ------------------------------------------------------------------ */
-/*  Constants                                                          */
-/* ------------------------------------------------------------------ */
-
-const STORAGE_KEY = 'kv-active-profile';
-const ALPHABET_PROGRESS_KEY = 'kv-alphabet-progress';
-
-const LETTERS: LetterData[] = [
-  { letter: 'A', word: 'Apple', emoji: '🍎', color: 'text-kids-coral' },
-  { letter: 'B', word: 'Bear', emoji: '🐻', color: 'text-kids-sun' },
-  { letter: 'C', word: 'Cat', emoji: '🐱', color: 'text-kids-grass' },
-  { letter: 'D', word: 'Dog', emoji: '🐶', color: 'text-kids-sun' },
-  { letter: 'E', word: 'Elephant', emoji: '🐘', color: 'text-kids-text-secondary' },
-  { letter: 'F', word: 'Fish', emoji: '🐟', color: 'text-kids-sky' },
-  { letter: 'G', word: 'Giraffe', emoji: '🦒', color: 'text-kids-grass' },
-  { letter: 'H', word: 'House', emoji: '🏠', color: 'text-kids-sun' },
-  { letter: 'I', word: 'Ice cream', emoji: '🍦', color: 'text-kids-pink' },
-  { letter: 'J', word: 'Juice', emoji: '🧃', color: 'text-kids-grass' },
-  { letter: 'K', word: 'Kite', emoji: '🪁', color: 'text-kids-lavender' },
-  { letter: 'L', word: 'Lion', emoji: '🦁', color: 'text-kids-sun' },
-  { letter: 'M', word: 'Moon', emoji: '🌙', color: 'text-kids-lavender' },
-  { letter: 'N', word: 'Nest', emoji: '🪺', color: 'text-kids-sun' },
-  { letter: 'O', word: 'Octopus', emoji: '🐙', color: 'text-kids-coral' },
-  { letter: 'P', word: 'Penguin', emoji: '🐧', color: 'text-kids-text-secondary' },
-  { letter: 'Q', word: 'Queen', emoji: '👸', color: 'text-kids-pink' },
-  { letter: 'R', word: 'Rainbow', emoji: '🌈', color: 'text-kids-sky' },
-  { letter: 'S', word: 'Star', emoji: '⭐', color: 'text-kids-sun' },
-  { letter: 'T', word: 'Tree', emoji: '🌳', color: 'text-kids-grass' },
-  { letter: 'U', word: 'Umbrella', emoji: '☂️', color: 'text-kids-sky' },
-  { letter: 'V', word: 'Violin', emoji: '🎻', color: 'text-kids-coral' },
-  { letter: 'W', word: 'Watermelon', emoji: '🍉', color: 'text-kids-grass' },
-  { letter: 'X', word: 'Xylophone', emoji: '🪈', color: 'text-kids-lavender' },
-  { letter: 'Y', word: 'Yarn', emoji: '🧶', color: 'text-kids-coral' },
-  { letter: 'Z', word: 'Zebra', emoji: '🦓', color: 'text-kids-text-secondary' },
-];
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
 
 function getStoredProfile(): StoredProfile | null {
   if (typeof window === 'undefined') return null;
@@ -86,65 +85,39 @@ function getStoredProfile(): StoredProfile | null {
   }
 }
 
-interface AlphabetProgressData {
-  viewed: string[];
-  completed: string[];
-  stars: Record<string, number>;
-}
-
-function getAlphabetProgress(): AlphabetProgressData {
-  if (typeof window === 'undefined') return { viewed: [], completed: [], stars: {} };
+function getPracticedLetters(): Set<string> {
+  if (typeof window === 'undefined') return new Set();
   try {
-    const raw = localStorage.getItem(ALPHABET_PROGRESS_KEY);
-    if (!raw) return { viewed: [], completed: [], stars: {} };
-    return JSON.parse(raw) as AlphabetProgressData;
+    const raw = localStorage.getItem(ALPHABET_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
   } catch {
-    return { viewed: [], completed: [], stars: {} };
+    return new Set();
   }
 }
 
-function saveAlphabetProgress(data: AlphabetProgressData) {
+function savePracticedLetters(letters: Set<string>) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(ALPHABET_PROGRESS_KEY, JSON.stringify(data));
+    localStorage.setItem(ALPHABET_KEY, JSON.stringify(Array.from(letters)));
+
+    // Also update global learn-progress
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    const global = raw ? JSON.parse(raw) : {};
+    global['alphabet'] = { completed: letters.size, practiced: Array.from(letters) };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(global));
   } catch {
-    // Silent fail for storage
+    // Silent
   }
 }
 
-function speakLetter(letter: string) {
+function speakText(text: string) {
   if (typeof window === 'undefined' || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(letter);
+  const utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = 0.8;
   utterance.pitch = 1.2;
   window.speechSynthesis.speak(utterance);
-}
-
-function speakWord(word: string) {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(word);
-  utterance.rate = 0.7;
-  utterance.pitch = 1.1;
-  window.speechSynthesis.speak(utterance);
-}
-
-function getQuizOptions(correctLetter: string, allLetters: LetterData[]): { label: string; correct: boolean }[] {
-  const correct = correctLetter;
-  const others = allLetters
-    .map((l) => l.letter)
-    .filter((l) => l !== correct);
-  // Shuffle and pick 2
-  const shuffled = others.sort(() => Math.random() - 0.5);
-  const picks = shuffled.slice(0, 2);
-  const options = [
-    { label: correct, correct: true },
-    { label: picks[0], correct: false },
-    { label: picks[1], correct: false },
-  ];
-  // Shuffle options
-  return options.sort(() => Math.random() - 0.5);
 }
 
 /* ------------------------------------------------------------------ */
@@ -154,13 +127,13 @@ function getQuizOptions(correctLetter: string, allLetters: LetterData[]): { labe
 function Confetti() {
   const particles = useMemo(() => {
     const colors = ['#FF6B6B', '#FFD93D', '#7ED957', '#60B5FF', '#C4B5FD', '#F472B6', '#6EE7B7', '#FBBF7A'];
-    return Array.from({ length: 50 }, (_, i) => ({
+    return Array.from({ length: 60 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       delay: Math.random() * 2,
       duration: 2 + Math.random() * 3,
       color: colors[i % colors.length],
-      size: 6 + Math.random() * 8,
+      size: 6 + Math.random() * 10,
       rotation: Math.random() * 360,
       shape: i % 3 === 0 ? 'circle' : i % 3 === 1 ? 'square' : 'star',
     }));
@@ -186,13 +159,9 @@ function Confetti() {
             y: typeof window !== 'undefined' ? window.innerHeight + 40 : 1000,
             opacity: [1, 1, 0],
             rotate: p.rotation + 720,
-            x: [0, (Math.random() - 0.5) * 100],
+            x: [0, (Math.random() - 0.5) * 120],
           }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            ease: 'easeIn',
-          }}
+          transition={{ duration: p.duration, delay: p.delay, ease: 'easeIn' }}
         />
       ))}
     </div>
@@ -200,35 +169,262 @@ function Confetti() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Tracing Canvas Component                                           */
+/* ------------------------------------------------------------------ */
+
+interface TraceCanvasProps {
+  letter: string;
+  practiced: boolean;
+  onPractice: () => void;
+  isToddler: boolean;
+}
+
+function TraceCanvas({ letter, practiced, onPractice, isToddler }: TraceCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isDrawingRef = useRef(false);
+  const lastPosRef = useRef<{ x: number; y: number } | null>(null);
+  const hasDrawnRef = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const CANVAS_SIZE = isToddler ? 280 : 220;
+  const LINE_WIDTH = isToddler ? 10 : 7;
+
+  const getCanvasPoint = useCallback(
+    (clientX: number, clientY: number): { x: number; y: number } | null => {
+      const canvas = canvasRef.current;
+      if (!canvas) return null;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY,
+      };
+    },
+    [],
+  );
+
+  const startDraw = useCallback(
+    (clientX: number, clientY: number) => {
+      const pos = getCanvasPoint(clientX, clientY);
+      if (!pos) return;
+      isDrawingRef.current = true;
+      lastPosRef.current = pos;
+
+      // Draw a dot at start position
+      const ctx = canvasRef.current?.getContext('2d');
+      if (ctx) {
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, LINE_WIDTH / 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(96, 181, 255, 0.8)';
+        ctx.fill();
+      }
+    },
+    [getCanvasPoint, LINE_WIDTH],
+  );
+
+  const moveDraw = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!isDrawingRef.current || !lastPosRef.current) return;
+      const pos = getCanvasPoint(clientX, clientY);
+      if (!pos) return;
+      const ctx = canvasRef.current?.getContext('2d');
+      if (!ctx) return;
+
+      ctx.beginPath();
+      ctx.moveTo(lastPosRef.current.x, lastPosRef.current.y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.strokeStyle = 'rgba(96, 181, 255, 0.8)';
+      ctx.lineWidth = LINE_WIDTH;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      lastPosRef.current = pos;
+
+      if (!hasDrawnRef.current) {
+        hasDrawnRef.current = true;
+        onPractice();
+      }
+    },
+    [getCanvasPoint, LINE_WIDTH, onPractice],
+  );
+
+  const endDraw = useCallback(() => {
+    isDrawingRef.current = false;
+    lastPosRef.current = null;
+  }, []);
+
+  const clearCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGuideLetter(ctx, canvas.width, canvas.height, letter);
+    hasDrawnRef.current = false;
+  }, [letter]);
+
+  // Draw guide letter and dashed center lines
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background
+    ctx.fillStyle = '#F8FAFC';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Dashed center lines
+    ctx.strokeStyle = '#E2E8F0';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([8, 6]);
+
+    // Horizontal center
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height / 2);
+    ctx.lineTo(canvas.width, canvas.height / 2);
+    ctx.stroke();
+
+    // Vertical center
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2, 0);
+    ctx.lineTo(canvas.width / 2, canvas.height);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    // Guide letter
+    drawGuideLetter(ctx, canvas.width, canvas.height, letter);
+  }, [letter]);
+
+  // Mouse events
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      e.preventDefault();
+      startDraw(e.clientX, e.clientY);
+    };
+    const handleMouseMove = (e: MouseEvent) => {
+      moveDraw(e.clientX, e.clientY);
+    };
+    const handleMouseUp = () => endDraw();
+    const handleMouseLeave = () => endDraw();
+
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseup', handleMouseUp);
+    canvas.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      canvas.removeEventListener('mousedown', handleMouseDown);
+      canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.removeEventListener('mouseup', handleMouseUp);
+      canvas.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [startDraw, moveDraw, endDraw]);
+
+  // Touch events
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      startDraw(touch.clientX, touch.clientY);
+    };
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      moveDraw(touch.clientX, touch.clientY);
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      e.preventDefault();
+      endDraw();
+    };
+
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+    canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
+      canvas.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [startDraw, moveDraw, endDraw]);
+
+  return (
+    <div ref={containerRef} className="flex flex-col items-center gap-2">
+      <div className="relative rounded-2xl border-2 border-dashed border-kids-sky/30 overflow-hidden bg-kids-lightgray/30">
+        <canvas
+          ref={canvasRef}
+          width={CANVAS_SIZE}
+          height={CANVAS_SIZE}
+          className="touch-none cursor-crosshair"
+          style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
+          aria-label={`Trace the letter ${letter}`}
+          role="img"
+        />
+        {practiced && (
+          <motion.div
+            className="absolute top-2 right-2"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+          >
+            <span className="text-lg" aria-hidden="true">✅</span>
+          </motion.div>
+        )}
+      </div>
+      <KidsButton
+        variant="outline"
+        size="sm"
+        onClick={clearCanvas}
+        leftIcon={<Eraser className="size-4" aria-hidden="true" />}
+      >
+        Clear
+      </KidsButton>
+    </div>
+  );
+}
+
+function drawGuideLetter(ctx: CanvasRenderingContext2D, w: number, h: number, letter: string) {
+  const fontSize = Math.floor(w * 0.65);
+  ctx.font = `bold ${fontSize}px Nunito, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(203, 213, 225, 0.5)';
+  ctx.fillText(letter, w / 2, h / 2 + fontSize * 0.05);
+}
+
+/* ------------------------------------------------------------------ */
 /*  Animation variants                                                 */
 /* ------------------------------------------------------------------ */
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.04, delayChildren: 0.1 },
-  },
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
 };
 
-const letterGridItem = {
-  hidden: { opacity: 0, scale: 0.5 },
-  visible: {
+const letterEntry = {
+  initial: { opacity: 0, scale: 0.3, rotate: -15 },
+  animate: {
     opacity: 1,
     scale: 1,
-    transition: { type: 'spring', stiffness: 350, damping: 22 },
+    rotate: 0,
+    transition: { type: 'spring', stiffness: 300, damping: 20 },
   },
-};
-
-const lessonVariants = {
-  enter: { opacity: 0, scale: 0.7, y: 40 },
-  center: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { type: 'spring', stiffness: 300, damping: 24 },
-  },
-  exit: { opacity: 0, scale: 0.8, y: -40, transition: { duration: 0.25 } },
+  exit: { opacity: 0, scale: 0.8, y: -30, transition: { duration: 0.2 } },
 };
 
 /* ------------------------------------------------------------------ */
@@ -239,250 +435,123 @@ export default function AlphabetPage() {
   const router = useRouter();
   const { play: playPop } = useAudio({ frequency: 600, type: 'triangle' });
   const { play: playSuccess } = useAudio({ frequency: 1200, type: 'sine', duration: 300 });
-  const { play: playError } = useAudio({ frequency: 300, type: 'square', duration: 200 });
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [profile, setProfile] = useState<StoredProfile | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [mode, setMode] = useState<AppMode>('explore');
   const [selectedIdx, setSelectedIdx] = useState(0);
-  const [viewedSet, setViewedSet] = useState<Set<string>>(new Set());
-  const [completedSet, setCompletedSet] = useState<Set<string>>(new Set());
-  const [starMap, setStarMap] = useState<Record<string, number>>({});
-  const [quizOptions, setQuizOptions] = useState<{ label: string; correct: boolean }[]>([]);
-  const [quizAttempts, setQuizAttempts] = useState(0);
-  const [flashCorrect, setFlashCorrect] = useState(false);
-  const [flashWrong, setFlashWrong] = useState(false);
+  const [practicedSet, setPracticedSet] = useState<Set<string>>(new Set());
   const [showCelebration, setShowCelebration] = useState(false);
+  const [hasSeenCelebration, setHasSeenCelebration] = useState(false);
 
-  /* ---- Load from localStorage on mount ---- */
+  /* ---- Load from localStorage ---- */
   useEffect(() => {
     const id = requestAnimationFrame(() => {
       setMounted(true);
       setProfile(getStoredProfile());
-
-      const prog = getAlphabetProgress();
-      setViewedSet(new Set(prog.viewed));
-      setCompletedSet(new Set(prog.completed));
-      setStarMap(prog.stars);
+      setPracticedSet(getPracticedLetters());
     });
     return () => cancelAnimationFrame(id);
   }, []);
 
-  /* ---- Persist progress ---- */
-  const persistProgress = useCallback(
-    (viewed: Set<string>, completed: Set<string>, stars: Record<string, number>) => {
-      const data: AlphabetProgressData = {
-        viewed: Array.from(viewed),
-        completed: Array.from(completed),
-        stars,
-      };
-      saveAlphabetProgress(data);
+  /* ---- Age config ---- */
+  const ageConfig = useAgeGroup(profile?.age ?? 5);
+  const isToddler = ageConfig.ageGroup === 'toddler';
+  const isKid = ageConfig.ageGroup === 'kid';
 
-      // Also update the global learn-progress for the overview page
-      if (typeof window === 'undefined') return;
-      try {
-        const raw = localStorage.getItem('kv-learn-progress');
-        const globalProgress = raw ? JSON.parse(raw) : {};
-        const totalCompleted = completed.size;
-        const totalStars = Object.values(stars).reduce((s, v) => s + v, 0);
-        globalProgress['alphabet'] = { completed: totalCompleted, stars: totalStars };
-        localStorage.setItem('kv-learn-progress', JSON.stringify(globalProgress));
-      } catch {
-        // Silent
-      }
+  /* ---- Adaptive sizing ---- */
+  const selectorLetterSize = isToddler ? 'text-xl sm:text-2xl' : isKid ? 'text-base sm:text-lg' : 'text-lg sm:text-xl';
+  const displayLetterSize = isToddler ? 'text-[100px] sm:text-[140px]' : isKid ? 'text-[72px] sm:text-[96px]' : 'text-[88px] sm:text-[120px]';
+  const emojiSize = isToddler ? 'text-6xl sm:text-7xl' : isKid ? 'text-4xl sm:text-5xl' : 'text-5xl sm:text-6xl';
+  const buttonSize = isToddler ? ('toddler' as const) : isKid ? ('kid' as const) : ('early' as const);
+  const selectorItemSize = isToddler ? 'min-w-[52px] min-h-[52px] sm:min-w-[60px] sm:min-h-[60px]' : 'min-w-[42px] min-h-[42px] sm:min-w-[48px] sm:min-h-[48px]';
+
+  /* ---- Derived state ---- */
+  const currentLetter = LETTERS[selectedIdx];
+  const practicedCount = practicedSet.size;
+  const allDone = practicedCount >= 26;
+
+  /* ---- Mark a letter as practiced ---- */
+  const markPracticed = useCallback(
+    (letter: string) => {
+      setPracticedSet((prev) => {
+        if (prev.has(letter)) return prev;
+        const next = new Set(prev);
+        next.add(letter);
+        savePracticedLetters(next);
+        return next;
+      });
     },
     [],
   );
 
-  /* ---- Age config ---- */
-  const ageConfig = useAgeGroup(profile?.age ?? 5);
-  const ageGroup = ageConfig.ageGroup;
-  const isToddler = ageGroup === 'toddler';
-  const isKid = ageGroup === 'kid';
-
-  /* ---- Adaptive sizing ---- */
-  const gridLetterSize = isToddler ? 'text-2xl sm:text-3xl' : isKid ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl';
-  const displayLetterSize = isToddler ? 'text-[120px] sm:text-[160px]' : isKid ? 'text-[80px] sm:text-[100px]' : 'text-[100px] sm:text-[130px]';
-  const emojiSize = isToddler ? 'text-6xl sm:text-7xl' : isKid ? 'text-4xl sm:text-5xl' : 'text-5xl sm:text-6xl';
-  const buttonSize = isToddler ? 'toddler' as const : isKid ? 'kid' as const : 'early' as const;
-
-  /* ---- Derived state ---- */
-  const currentLetter = LETTERS[selectedIdx];
-  const isViewed = viewedSet.has(currentLetter.letter);
-  const isCompleted = completedSet.has(currentLetter.letter);
-  const completedCount = completedSet.size;
-  const allDone = completedCount >= 26;
-
-  /* ---- Check celebration ---- */
+  /* ---- Celebration check ---- */
   useEffect(() => {
-    if (allDone && mounted) {
+    if (allDone && mounted && !hasSeenCelebration) {
       const timer = setTimeout(() => {
-        setMode('celebration');
         setShowCelebration(true);
+        setHasSeenCelebration(true);
         playSuccess();
-      }, 400);
+      }, 600);
       return () => clearTimeout(timer);
     }
-  }, [allDone, mounted, playSuccess]);
+  }, [allDone, mounted, hasSeenCelebration, playSuccess]);
+
+  /* ---- Scroll selected letter into view ---- */
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const activeEl = container.querySelector(`[data-letter="${LETTERS[selectedIdx].letter}"]`);
+    if (activeEl) {
+      activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [selectedIdx]);
 
   /* ---- Handlers ---- */
-  const handleLetterTap = useCallback(
+  const handleSelectLetter = useCallback(
     (idx: number) => {
       playPop();
       setSelectedIdx(idx);
-      setMode('lesson');
-      setQuizAttempts(0);
-      setFlashCorrect(false);
-      setFlashWrong(false);
-
-      // Mark as viewed
-      setViewedSet((prev) => {
-        const next = new Set(prev);
-        next.add(LETTERS[idx].letter);
-        return next;
-      });
     },
     [playPop],
   );
 
-  const handleHearIt = useCallback(() => {
-    playPop();
-    speakLetter(currentLetter.letter);
-  }, [playPop, currentLetter]);
-
-  const handleHearWord = useCallback(() => {
-    playPop();
-    speakWord(currentLetter.word);
-  }, [playPop, currentLetter]);
-
-  const handleStartQuiz = useCallback(() => {
-    playPop();
-    const opts = getQuizOptions(currentLetter.letter, LETTERS);
-    setQuizOptions(opts);
-    setQuizAttempts(0);
-    setMode('quiz');
-  }, [playPop, currentLetter]);
-
-  const handleQuizAnswer = useCallback(
-    (option: { label: string; correct: boolean }) => {
-      if (option.correct) {
-        playSuccess();
-        setFlashCorrect(true);
-        setTimeout(() => setFlashCorrect(false), 800);
-
-        // Calculate stars
-        const stars = quizAttempts === 0 ? 3 : quizAttempts === 1 ? 2 : 1;
-
-        setCompletedSet((prev) => {
-          const next = new Set(prev);
-          next.add(currentLetter.letter);
-          return next;
-        });
-        setStarMap((prev) => {
-          const existing = prev[currentLetter.letter] ?? 0;
-          return { ...prev, [currentLetter.letter]: Math.max(existing, stars) };
-        });
-
-        // Persist after a short delay for animation
-        setTimeout(() => {
-          const newViewed = new Set(viewedSet);
-          newViewed.add(currentLetter.letter);
-          const newCompleted = new Set(completedSet);
-          newCompleted.add(currentLetter.letter);
-          const newStars = { ...starMap, [currentLetter.letter]: Math.max(starMap[currentLetter.letter] ?? 0, stars) };
-          persistProgress(newViewed, newCompleted, newStars);
-        }, 300);
-
-        // Auto advance after delay
-        setTimeout(() => {
-          if (selectedIdx < 25) {
-            setSelectedIdx((prev) => prev + 1);
-            setMode('lesson');
-            setQuizAttempts(0);
-            setViewedSet((prev) => {
-              const next = new Set(prev);
-              next.add(LETTERS[selectedIdx + 1].letter);
-              return next;
-            });
-          } else {
-            // Last letter completed
-            const newCompleted = new Set(completedSet);
-            newCompleted.add(currentLetter.letter);
-            const stars = quizAttempts === 0 ? 3 : quizAttempts === 1 ? 2 : 1;
-            const newStars = { ...starMap, [currentLetter.letter]: Math.max(starMap[currentLetter.letter] ?? 0, stars) };
-            persistProgress(viewedSet, newCompleted, newStars);
-            setMode('explore');
-          }
-        }, 1200);
-      } else {
-        playError();
-        setFlashWrong(true);
-        setQuizAttempts((prev) => prev + 1);
-        setTimeout(() => setFlashWrong(false), 600);
-      }
-    },
-    [
-      playSuccess, playError, quizAttempts, currentLetter, selectedIdx,
-      viewedSet, completedSet, starMap, persistProgress,
-    ],
-  );
-
-  const handleNextLetter = useCallback(() => {
-    // For toddlers — explore mode: just view, mark as "completed", and move on
-    playPop();
-    if (!isCompleted) {
-      setCompletedSet((prev) => {
-        const next = new Set(prev);
-        next.add(currentLetter.letter);
-        return next;
-      });
-      setStarMap((prev) => ({
-        ...prev,
-        [currentLetter.letter]: Math.max(prev[currentLetter.letter] ?? 0, 2),
-      }));
-
-      const newViewed = new Set(viewedSet);
-      newViewed.add(currentLetter.letter);
-      const newCompleted = new Set(completedSet);
-      newCompleted.add(currentLetter.letter);
-      const newStars = { ...starMap, [currentLetter.letter]: Math.max(starMap[currentLetter.letter] ?? 0, 2) };
-      persistProgress(newViewed, newCompleted, newStars);
+  const handlePrev = useCallback(() => {
+    if (selectedIdx > 0) {
+      playPop();
+      setSelectedIdx((prev) => prev - 1);
     }
+  }, [selectedIdx, playPop]);
 
+  const handleNext = useCallback(() => {
     if (selectedIdx < 25) {
+      playPop();
       setSelectedIdx((prev) => prev + 1);
-      setMode('lesson');
-      setQuizAttempts(0);
-      setViewedSet((prev) => {
-        const next = new Set(prev);
-        next.add(LETTERS[selectedIdx + 1].letter);
-        return next;
-      });
-    } else {
-      setMode('explore');
     }
-  }, [playPop, isCompleted, currentLetter, selectedIdx, viewedSet, completedSet, starMap, persistProgress]);
-
-  const handleBackToExplore = useCallback(() => {
-    playPop();
-    setMode('explore');
-  }, [playPop]);
+  }, [selectedIdx, playPop]);
 
   const handleGoBack = useCallback(() => {
     playPop();
     router.push('/learn');
   }, [playPop, router]);
 
-  const handleRestart = useCallback(() => {
-    setViewedSet(new Set());
-    setCompletedSet(new Set());
-    setStarMap({});
-    setMode('explore');
-    setShowCelebration(false);
-    persistProgress(new Set(), new Set(), {});
-  }, [persistProgress]);
+  const handleHearLetter = useCallback(() => {
+    playPop();
+    speakText(`${currentLetter.letter}. ${currentLetter.letter} is for ${currentLetter.word}`);
+  }, [playPop, currentLetter]);
 
-  /* ---- Not mounted / no profile ---- */
+  const handleCloseCelebration = useCallback(() => {
+    setShowCelebration(false);
+  }, []);
+
+  const handleRestart = useCallback(() => {
+    setPracticedSet(new Set());
+    savePracticedLetters(new Set());
+    setHasSeenCelebration(false);
+    setShowCelebration(false);
+  }, []);
+
+  /* ---- Loading state ---- */
   if (!mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-kids-offwhite">
@@ -505,34 +574,33 @@ export default function AlphabetPage() {
     );
   }
 
+  /* ---- No profile state ---- */
   if (!profile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-kids-offwhite px-4">
-        <motion.div
-          className="flex flex-col items-center gap-6 rounded-3xl bg-white p-8 shadow-kids-lg text-center max-w-sm sm:max-w-md"
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+        <KidsCard
+          variant="elevated"
+          color="sun"
+          padding="xl"
+          className="max-w-sm sm:max-w-md text-center"
         >
-          <motion.span
-            className="text-6xl"
+          <motion.div
             animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="text-6xl mb-4"
           >
             🔤
-          </motion.span>
-          <div>
-            <h1 className="text-2xl font-nunito font-extrabold text-kids-dark">
-              Who&apos;s Learning?
-            </h1>
-            <p className="mt-2 text-sm text-kids-text-secondary leading-relaxed">
-              Please select a profile first!
-            </p>
-          </div>
+          </motion.div>
+          <h2 className="text-2xl font-nunito font-bold text-kids-dark mb-2">
+            Who&apos;s Learning?
+          </h2>
+          <p className="text-sm text-kids-text-secondary mb-6">
+            Please select a profile first!
+          </p>
           <KidsButton variant="primary" size="early" onClick={() => router.push('/kids')}>
             Choose a Profile
           </KidsButton>
-        </motion.div>
+        </KidsCard>
       </div>
     );
   }
@@ -542,11 +610,11 @@ export default function AlphabetPage() {
   /* ================================================================ */
 
   return (
-    <div className="min-h-screen bg-kids-offwhite">
-      {/* Confetti on celebration */}
+    <div className="min-h-screen bg-kids-offwhite flex flex-col">
+      {/* Confetti */}
       {showCelebration && <Confetti />}
 
-      {/* Top bar */}
+      {/* ---- Top Header ---- */}
       <header className="sticky top-0 z-40 w-full">
         <div className="mx-auto max-w-2xl">
           <div className="flex h-14 items-center justify-between rounded-b-2xl bg-white px-4 shadow-kids sm:px-6">
@@ -561,412 +629,231 @@ export default function AlphabetPage() {
                 Learn
               </span>
             </button>
-            <div className="flex items-center gap-2">
-              <KidsBadge variant="sky" size="sm" icon={<span aria-hidden="true">🔤</span>}>
-                {completedCount}/26
-              </KidsBadge>
-            </div>
-            <div className="flex items-center gap-2">
-              <motion.span className="text-2xl" aria-hidden="true">
-                {profile.avatar}
-              </motion.span>
-            </div>
+            <KidsBadge variant="sky" size="sm" icon={<span aria-hidden="true">🔤</span>}>
+              {practicedCount}/26
+            </KidsBadge>
+            <motion.span className="text-2xl" aria-hidden="true">
+              {profile.avatar}
+            </motion.span>
           </div>
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="mx-auto max-w-2xl px-4 pb-12 pt-4 sm:px-6 sm:pt-6">
+      {/* ---- Main Content ---- */}
+      <main className="flex-1 mx-auto w-full max-w-2xl px-4 pb-8 pt-4 sm:px-6 sm:pt-6 flex flex-col gap-5">
+
+        {/* ---- Letter Selector (scrollable row) ---- */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory"
+            style={{ scrollbarWidth: 'thin' }}
+            role="tablist"
+            aria-label="Select a letter"
+          >
+            {LETTERS.map((item, idx) => {
+              const isPracticed = practicedSet.has(item.letter);
+              const isActive = idx === selectedIdx;
+
+              return (
+                <motion.button
+                  key={item.letter}
+                  type="button"
+                  data-letter={item.letter}
+                  role="tab"
+                  aria-selected={isActive}
+                  whileHover={{ scale: 1.08, y: -2 }}
+                  whileTap={{ scale: 0.92 }}
+                  onClick={() => handleSelectLetter(idx)}
+                  className={cn(
+                    'flex-shrink-0 flex items-center justify-center rounded-xl border-2 font-nunito font-extrabold transition-colors snap-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-kids-sky',
+                    selectorLetterSize,
+                    selectorItemSize,
+                    isActive
+                      ? 'bg-kids-sky text-white border-kids-sky shadow-kids'
+                      : isPracticed
+                        ? 'bg-kids-grass/15 text-kids-grass border-kids-grass/40'
+                        : 'bg-white text-kids-dark border-kids-lightgray hover:border-kids-sky/40',
+                  )}
+                >
+                  {item.letter}
+                  {isPracticed && !isActive && (
+                    <span className="absolute -top-1 -right-1 text-[10px]" aria-hidden="true">✓</span>
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* ---- Progress bar ---- */}
+        <KidsProgressBar
+          value={practicedCount}
+          min={0}
+          max={26}
+          size="sm"
+          color="rainbow"
+          showLabel
+          label={`Letters Practiced`}
+        />
+
+        {/* ---- Letter Display Card ---- */}
         <AnimatePresence mode="wait">
-          {/* ============================================================ */}
-          {/*  EXPLORE MODE — Letter Grid                                  */}
-          {/* ============================================================ */}
-          {mode === 'explore' && (
-            <motion.div
-              key="explore"
-              className="flex flex-col gap-5"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              exit={{ opacity: 0, y: -20, transition: { duration: 0.2 } }}
+          <motion.div
+            key={currentLetter.letter}
+            variants={fadeInUp}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.35 }}
+            className="flex flex-col items-center gap-4"
+          >
+            <KidsCard
+              variant="elevated"
+              color="white"
+              padding="xl"
+              className="w-full text-center relative overflow-hidden"
             >
-              {/* Section title */}
-              <motion.div variants={letterGridItem} className="text-center">
-                <h1 className="text-xl sm:text-2xl font-nunito font-extrabold text-kids-dark">
-                  Alphabet Adventure 🔤
-                </h1>
-                <p className="mt-1 text-sm text-kids-text-secondary">
-                  {isToddler
-                    ? 'Tap a letter to explore!'
-                    : `Tap a letter to start learning — ${completedCount} of 26 done!`}
-                </p>
-                {/* Progress bar */}
-                <div className="mt-3 mx-auto max-w-xs">
-                  <div className="h-3 w-full rounded-full bg-kids-lightgray overflow-hidden">
-                    <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-kids-sky to-kids-blue"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(completedCount / 26) * 100}%` }}
-                      transition={{ duration: 0.6, ease: 'easeOut' }}
-                    />
-                  </div>
-                </div>
-              </motion.div>
+              {/* Decorative background emojis */}
+              <div className="pointer-events-none absolute inset-0 opacity-[0.06]" aria-hidden="true">
+                <div className="absolute top-3 left-3 text-4xl rotate-[-15deg]">{currentLetter.emoji}</div>
+                <div className="absolute bottom-3 right-3 text-4xl rotate-[15deg]">{currentLetter.emoji}</div>
+                <div className="absolute top-6 right-10 text-2xl">{currentLetter.emoji}</div>
+                <div className="absolute bottom-8 left-10 text-2xl">{currentLetter.emoji}</div>
+              </div>
 
-              {/* Letter grid */}
+              {/* Navigation row */}
+              <div className="relative flex items-center justify-between mb-2">
+                <KidsButton
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={handlePrev}
+                  disabled={selectedIdx === 0}
+                  sound="pop"
+                  aria-label="Previous letter"
+                >
+                  <ChevronLeft className="size-5" />
+                </KidsButton>
+
+                <span className="text-xs font-nunito font-bold text-kids-text-secondary">
+                  {selectedIdx + 1} of 26
+                </span>
+
+                <KidsButton
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={handleNext}
+                  disabled={selectedIdx === 25}
+                  sound="pop"
+                  aria-label="Next letter"
+                >
+                  <ChevronRight className="size-5" />
+                </KidsButton>
+              </div>
+
+              {/* The big letter */}
               <motion.div
-                className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 gap-2 sm:gap-3"
-                variants={containerVariants}
+                className={cn('font-nunito font-extrabold leading-none select-none', displayLetterSize, currentLetter.color)}
+                variants={letterEntry}
+                initial="initial"
+                animate="animate"
               >
-                {LETTERS.map((item, idx) => {
-                  const done = completedSet.has(item.letter);
-                  const viewed = viewedSet.has(item.letter);
-                  const stars = starMap[item.letter] ?? 0;
-
-                  return (
-                    <motion.button
-                      key={item.letter}
-                      type="button"
-                      variants={letterGridItem}
-                      whileHover={{ scale: 1.08, y: -2 }}
-                      whileTap={{ scale: 0.92 }}
-                      onClick={() => handleLetterTap(idx)}
-                      className={cn(
-                        'relative flex flex-col items-center justify-center rounded-2xl border-2 p-2 sm:p-3 transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-kids-sky',
-                        done
-                          ? 'bg-gradient-to-br from-kids-grass/20 to-kids-mint/20 border-kids-grass/40'
-                          : viewed
-                            ? 'bg-gradient-to-br from-kids-sun/10 to-kids-peach/10 border-kids-sun/30'
-                            : 'bg-white border-kids-lightgray hover:border-kids-sky/40',
-                        isToddler ? 'min-h-[64px] sm:min-h-[72px]' : 'min-h-[52px] sm:min-h-[60px]',
-                      )}
-                      aria-label={`Letter ${item.letter}${done ? ', completed' : viewed ? ', viewed' : ''}`}
-                    >
-                      <span
-                        className={cn(
-                          'font-nunito font-extrabold leading-none',
-                          gridLetterSize,
-                          done ? 'text-kids-grass' : 'text-kids-dark',
-                        )}
-                      >
-                        {item.letter}
-                      </span>
-                      {/* Star indicator */}
-                      {done && stars > 0 && (
-                        <span className="absolute -top-1 -right-1 text-xs" aria-hidden="true">
-                          ⭐
-                        </span>
-                      )}
-                      {/* Viewed dot */}
-                      {viewed && !done && (
-                        <span className="absolute -top-1 -right-1 size-2 rounded-full bg-kids-sun" aria-hidden="true" />
-                      )}
-                    </motion.button>
-                  );
-                })}
+                {currentLetter.letter}
               </motion.div>
-            </motion.div>
-          )}
 
-          {/* ============================================================ */}
-          {/*  LESSON MODE — Large letter display                          */}
-          {/* ============================================================ */}
-          {mode === 'lesson' && (
-            <motion.div
-              key={`lesson-${selectedIdx}`}
-              variants={lessonVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              className="flex flex-col items-center gap-5 sm:gap-6"
-            >
-              {/* Back to grid button */}
-              <div className="w-full flex justify-start">
-                <KidsButton variant="ghost" size="sm" onClick={handleBackToExplore} sound="pop">
-                  <ArrowLeft className="size-4" aria-hidden="true" />
-                  <span>All Letters</span>
-                </KidsButton>
-              </div>
-
-              {/* Large letter card */}
-              <KidsCard
-                variant="elevated"
-                color="white"
-                padding="xl"
-                className="w-full text-center relative overflow-hidden"
+              {/* Emoji + Word */}
+              <motion.div
+                className="mt-2 flex flex-col items-center gap-1"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
               >
-                {/* Decorative background dots */}
-                <div className="pointer-events-none absolute inset-0 opacity-10" aria-hidden="true">
-                  <div className="absolute top-4 left-4 text-4xl">{currentLetter.emoji}</div>
-                  <div className="absolute bottom-4 right-4 text-4xl">{currentLetter.emoji}</div>
-                  <div className="absolute top-8 right-8 text-2xl">{currentLetter.emoji}</div>
-                </div>
+                <span className={emojiSize} aria-hidden="true">
+                  {currentLetter.emoji}
+                </span>
+                <p className="text-base sm:text-lg font-nunito font-bold text-kids-text-secondary">
+                  {isToddler ? '' : `${currentLetter.letter} is for`}
+                </p>
+                <p className="text-xl sm:text-2xl font-nunito font-extrabold text-kids-dark">
+                  {currentLetter.word}
+                </p>
+              </motion.div>
 
-                {/* Progress indicator: which letter */}
-                <div className="relative flex items-center justify-center gap-2 mb-2">
-                  <span className="text-xs font-nunito font-bold text-kids-text-muted">
-                    {selectedIdx + 1} of 26
-                  </span>
-                </div>
-
-                {/* The big letter */}
-                <motion.div
-                  className={cn('font-nunito font-extrabold leading-none', displayLetterSize, currentLetter.color)}
-                  initial={{ scale: 0, rotate: -20 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
-                >
-                  {currentLetter.letter}
-                </motion.div>
-
-                {/* Emoji + Word */}
-                <motion.div
-                  className="mt-2 flex flex-col items-center gap-1"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <span className={emojiSize} aria-hidden="true">
-                    {currentLetter.emoji}
-                  </span>
-                  <p className="text-lg sm:text-xl font-nunito font-bold text-kids-dark">
-                    {isToddler ? '' : `${currentLetter.letter} is for`}
-                  </p>
-                  <p className="text-xl sm:text-2xl font-nunito font-extrabold text-kids-dark">
-                    {currentLetter.word}
-                  </p>
-                </motion.div>
-
-                {/* Action buttons */}
-                <motion.div
-                  className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  {/* Hear letter sound */}
-                  <KidsButton
-                    variant="primary"
-                    size={buttonSize}
-                    onClick={handleHearIt}
-                    sound="pop"
-                    leftIcon={<Volume2 className="size-5" aria-hidden="true" />}
-                  >
-                    {isToddler ? '🔊 Hear It' : 'Hear Letter'}
-                  </KidsButton>
-
-                  {/* Hear the word */}
-                  <KidsButton
-                    variant="accent"
-                    size={buttonSize}
-                    onClick={handleHearWord}
-                    sound="pop"
-                    leftIcon={<span aria-hidden="true">{currentLetter.emoji}</span>}
-                  >
-                    {isToddler ? '🗣️ Word' : `Hear "${currentLetter.word}"`}
-                  </KidsButton>
-                </motion.div>
-
-                {/* Quiz / Next button */}
-                <motion.div
-                  className="mt-5 flex justify-center"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                >
-                  {isToddler ? (
-                    <KidsButton
-                      variant="success"
-                      size={buttonSize}
-                      onClick={handleNextLetter}
-                      sound="pop"
-                      rightIcon={<ChevronRight className="size-5" aria-hidden="true" />}
-                    >
-                      {selectedIdx < 25 ? 'Next Letter →' : 'All Done! 🎉'}
-                    </KidsButton>
-                  ) : (
-                    <KidsButton
-                      variant="success"
-                      size={buttonSize}
-                      onClick={handleStartQuiz}
-                      sound="pop"
-                      rightIcon={<span aria-hidden="true">🎯</span>}
-                    >
-                      {isCompleted ? 'Quiz Again!' : 'Quiz Me!'}
-                    </KidsButton>
-                  )}
-                </motion.div>
-
-                {/* Show stars if already completed */}
-                {isCompleted && (starMap[currentLetter.letter] ?? 0) > 0 && (
-                  <motion.div
-                    className="mt-4"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.9 }}
-                  >
-                    <StarBadge
-                      count={starMap[currentLetter.letter]}
-                      max={3}
-                      size={isToddler ? 36 : 28}
-                      animate={false}
-                      ariaLabel={`${starMap[currentLetter.letter]} of 3 stars earned for ${currentLetter.letter}`}
-                    />
-                  </motion.div>
-                )}
-              </KidsCard>
-            </motion.div>
-          )}
-
-          {/* ============================================================ */}
-          {/*  QUIZ MODE                                                   */}
-          {/* ============================================================ */}
-          {mode === 'quiz' && (
-            <motion.div
-              key={`quiz-${selectedIdx}`}
-              variants={lessonVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              className="flex flex-col items-center gap-5 sm:gap-6"
-            >
-              {/* Back to lesson */}
-              <div className="w-full flex justify-start">
-                <KidsButton variant="ghost" size="sm" onClick={() => setMode('lesson')} sound="pop">
-                  <ArrowLeft className="size-4" aria-hidden="true" />
-                  <span>Back</span>
-                </KidsButton>
-              </div>
-
-              {/* Question card */}
-              <KidsCard
-                variant="elevated"
-                color={flashCorrect ? 'grass' : flashWrong ? 'coral' : 'white'}
-                padding="xl"
-                className={cn(
-                  'w-full text-center transition-colors duration-300',
-                  flashCorrect && 'ring-4 ring-kids-grass/50',
-                  flashWrong && 'ring-4 ring-kids-coral/50',
-                )}
+              {/* Hear it button */}
+              <motion.div
+                className="mt-5 flex justify-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
               >
-                {/* Question text */}
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                <KidsButton
+                  variant="primary"
+                  size={buttonSize}
+                  onClick={handleHearLetter}
+                  leftIcon={<Volume2 className="size-5" aria-hidden="true" />}
                 >
-                  <p className="text-base sm:text-lg font-nunito font-bold text-kids-text-secondary">
-                    Which letter is this?
-                  </p>
-                </motion.div>
+                  {isToddler ? '🔊 Hear It' : 'Hear Letter'}
+                </KidsButton>
+              </motion.div>
 
-                {/* Show the letter + word hint */}
+              {/* Practiced indicator */}
+              {practicedSet.has(currentLetter.letter) && (
                 <motion.div
-                  className="my-4"
-                  initial={{ scale: 0.5 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.15 }}
+                  className="mt-3"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
                 >
-                  <span className={cn('text-6xl sm:text-7xl font-nunito font-extrabold', currentLetter.color)}>
-                    {currentLetter.letter}
-                  </span>
+                  <KidsBadge variant="success" size="sm">
+                    ✓ Practiced!
+                  </KidsBadge>
                 </motion.div>
+              )}
+            </KidsCard>
 
-                {/* Emoji hint */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <span className="text-3xl" aria-hidden="true">{currentLetter.emoji}</span>
-                </motion.div>
-
-                {/* Feedback text */}
-                <AnimatePresence mode="wait">
-                  {flashCorrect && (
-                    <motion.p
-                      key="correct"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="mt-3 text-lg font-nunito font-extrabold text-kids-grass"
-                    >
-                      ✅ Amazing! That&apos;s right!
-                    </motion.p>
-                  )}
-                  {flashWrong && (
-                    <motion.p
-                      key="wrong"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="mt-3 text-lg font-nunito font-extrabold text-kids-coral"
-                    >
-                      😊 Try again!
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-
-                {/* Answer options */}
-                <div className="mt-6 grid grid-cols-3 gap-3 sm:gap-4">
-                  {quizOptions.map((option) => (
-                    <motion.button
-                      key={option.label}
-                      type="button"
-                      disabled={flashCorrect}
-                      whileHover={!flashCorrect ? { scale: 1.05, y: -2 } : {}}
-                      whileTap={!flashCorrect ? { scale: 0.92 } : {}}
-                      onClick={() => !flashCorrect && handleQuizAnswer(option)}
-                      className={cn(
-                        'flex items-center justify-center rounded-2xl border-3 font-nunito font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-kids-sky',
-                        isToddler ? 'min-h-[72px] sm:min-h-[80px] text-3xl sm:text-4xl' : 'min-h-[56px] sm:min-h-[64px] text-2xl sm:text-3xl',
-                        flashCorrect && option.correct
-                          ? 'bg-kids-grass text-white border-kids-grass'
-                          : 'bg-white text-kids-dark border-kids-lightgray hover:border-kids-sky/50',
-                      )}
-                      aria-label={`Letter ${option.label}`}
-                    >
-                      {option.label}
-                    </motion.button>
-                  ))}
-                </div>
-
-                {/* Hear it during quiz */}
-                <motion.div
-                  className="mt-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <KidsButton variant="ghost" size="sm" onClick={handleHearIt} sound="pop">
-                    <Volume2 className="size-4" aria-hidden="true" />
-                    <span>Hear it</span>
-                  </KidsButton>
-                </motion.div>
-              </KidsCard>
+            {/* ---- Trace Section ---- */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="w-full flex flex-col items-center gap-3"
+            >
+              <div className="text-center">
+                <h3 className="text-base sm:text-lg font-nunito font-bold text-kids-dark flex items-center justify-center gap-2">
+                  <span>✏️</span>
+                  Trace the Letter
+                </h3>
+                <p className="text-xs text-kids-text-secondary mt-1">
+                  Draw on the canvas below to practice!
+                </p>
+              </div>
+              <TraceCanvas
+                letter={currentLetter.letter}
+                practiced={practicedSet.has(currentLetter.letter)}
+                onPractice={() => markPracticed(currentLetter.letter)}
+                isToddler={isToddler}
+              />
             </motion.div>
-          )}
+          </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* ================================================================ */}
-      {/*  CELEBRATION MODAL                                               */}
-      {/* ================================================================ */}
+      {/* ---- Celebration Modal ---- */}
       <KidsModal
-        isOpen={mode === 'celebration'}
-        onClose={() => {
-          setShowCelebration(false);
-          setMode('explore');
-        }}
-        title="🎉 You Did It!"
-        description="You've learned all 26 letters of the alphabet!"
+        isOpen={showCelebration}
+        onClose={handleCloseCelebration}
+        title="🎉 Alphabet Champion!"
+        description="You've practiced all 26 letters! Amazing work!"
         size="md"
-        showCloseButton={true}
+        showCloseButton
         footer={
           <>
             <KidsButton
               variant="outline"
               onClick={handleRestart}
-              sound="pop"
               leftIcon={<RotateCcw className="size-4" aria-hidden="true" />}
             >
               Start Over
@@ -974,12 +861,10 @@ export default function AlphabetPage() {
             <KidsButton
               variant="rainbow"
               onClick={() => {
-                setShowCelebration(false);
-                setMode('explore');
+                handleCloseCelebration();
                 router.push('/learn');
               }}
-              sound="success"
-              leftIcon={<span aria-hidden="true">📚</span>}
+              leftIcon={<PartyPopper className="size-4" aria-hidden="true" />}
             >
               More Learning!
             </KidsButton>
@@ -987,7 +872,6 @@ export default function AlphabetPage() {
         }
       >
         <div className="flex flex-col items-center gap-4 py-4">
-          {/* Celebration emoji */}
           <motion.span
             className="text-7xl"
             animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
@@ -996,47 +880,23 @@ export default function AlphabetPage() {
           >
             🏆
           </motion.span>
-
-          {/* Stars summary */}
           <div className="text-center">
-            <p className="text-sm text-kids-text-secondary mb-2">
-              Total stars earned
+            <p className="text-2xl font-nunito font-bold text-kids-dark mb-1">
+              {practicedCount} / 26 Letters
             </p>
-            <StarBadge
-              count={Object.values(starMap).reduce((s, v) => s + v, 0)}
-              max={78}
-              size={32}
-              animate={true}
-              ariaLabel={`Total stars earned: ${Object.values(starMap).reduce((s, v) => s + v, 0)} out of 78`}
-            />
-            <p className="mt-2 text-xs text-kids-text-muted font-nunito">
-              {Object.values(starMap).reduce((s, v) => s + v, 0)} / 78 stars
+            <p className="text-sm text-kids-text-secondary">
+              You traced every single letter of the alphabet!
             </p>
           </div>
-
-          {/* Perfect score badge */}
-          {Object.values(starMap).every((s) => s === 3) && (
-            <KidsBadge variant="gold" size="lg" isAchievement glow>
-              ⭐ Perfect Score!
-            </KidsBadge>
-          )}
-
-          {/* Decorative letters */}
-          <div className="flex flex-wrap justify-center gap-1 mt-2 max-w-xs" aria-hidden="true">
+          <div className="flex flex-wrap justify-center gap-1 max-w-xs">
             {LETTERS.map((l) => (
-              <motion.span
+              <span
                 key={l.letter}
-                className="text-sm font-nunito font-extrabold text-kids-sky"
-                animate={{ y: [0, -4, 0] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  delay: Math.random() * 0.5,
-                  ease: 'easeInOut',
-                }}
+                className="text-lg font-nunito font-bold text-kids-grass"
+                aria-hidden="true"
               >
                 {l.letter}
-              </motion.span>
+              </span>
             ))}
           </div>
         </div>

@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Undo2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Undo2, Trash2, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const COLORS = [
@@ -135,6 +135,15 @@ export default function DrawCanvas() {
     saveState();
   }, [saveState]);
 
+  const saveCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const link = document.createElement('a');
+    link.download = `kidsverse-drawing-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }, []);
+
   if (!mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-kids-offwhite">
@@ -153,6 +162,9 @@ export default function DrawCanvas() {
           </button>
           <h1 className="font-nunito text-lg font-extrabold text-kids-dark">Free Draw</h1>
           <div className="flex items-center gap-2">
+            <button type="button" onClick={saveCanvas} className="flex h-9 w-9 items-center justify-center rounded-xl bg-kids-grass/10 transition-all hover:bg-kids-grass/20 active:scale-90" aria-label="Save drawing">
+              <Download className="size-4 text-kids-grass" />
+            </button>
             <button type="button" onClick={undo} disabled={history.length <= 1} className="flex h-9 w-9 items-center justify-center rounded-xl bg-kids-lightgray/60 transition-all hover:bg-kids-lightgray active:scale-90 disabled:opacity-30" aria-label="Undo">
               <Undo2 className="size-4 text-kids-dark" />
             </button>
