@@ -50,3 +50,36 @@ Stage Summary:
 - All back arrows on standalone pages now return to kid profile when profile exists
 - Story viewer bottom navigation is now fully visible and usable
 - Creative Studio is fully functional (no "Coming Soon" placeholders)
+
+---
+Task ID: premium-system
+Agent: full-stack-developer
+Task: Implement premium content system with paywall, enriched content, and subscriber gating
+
+Work Log:
+- Created PremiumLock modal component at /src/components/premium/premium-lock.tsx
+- Created usePremium hook at /src/hooks/use-premium.tsx with localStorage subscription check
+- Updated games types: added isPremium to Game interface, added 4 new premium games (word-search, quiz, trivia, pattern)
+- Added SPELLING_WORDS_TODDLER list (6 simple words for age 2-4)
+- Updated learning types: marked alphabet K-Z, numbers 11-20/addition/subtraction/patterns/by2s/by5s/by10s as premium
+- Marked all Colors and Science lessons as premium
+- Added 4 new premium Science lessons (dinosaurs, space-animals, experiments, earth-layers)
+- Added 4 new premium Colors lessons (emotions, nature-palette, complementary, world-cultures)
+- Updated Stories page: marked 4 more stories as premium, added lock overlay, gated with PremiumLock modal
+- Updated Play page: imported GAMES from types, added premium badges and lock overlays, gated with modal
+- Updated Create page: marked stamp and pixel as premium, added lock overlays, gated with modal
+- Updated Watch page: marked 5 more videos as premium, added lock overlays, gated with modal
+- Updated Learn page: imported getLessonsForModule, marked Colors/Science as premium modules, gated with modal
+- Fixed file extension: use-premium.ts renamed to use-premium.tsx for JSX support
+- All lint errors are pre-existing (draw, stamp, kids pages) — no new errors introduced
+- Committed and pushed to GitHub
+
+Stage Summary:
+- Premium content system fully implemented
+- 4 new premium games added (word-search, quiz, trivia, pattern)
+- 8 new premium lessons added (4 science + 4 colors)
+- 5 additional stories marked premium (total 6 premium stories)
+- 5 additional videos marked premium (total 6 premium videos)
+- PremiumLock modal shows when non-subscribers try premium content
+- All content pages (stories, play, create, watch, learn) gated properly
+- PremiumLock features: animated lock icon, feature list, "Ask Parent" + "Upgrade Now" buttons
